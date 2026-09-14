@@ -13,7 +13,7 @@
         .btn-p { background: #4f46e5; color: #fff; }
         .btn-s { background: #fff; color: #334155; border: 1px solid #cbd5e1; }
         .btn-d { background: #0f172a; color: #fff; }
-        .status { font-size: 18px; font-weight: 800; margin-0 0 10px 0; }
+        .status { font-size: 18px; font-weight: 800; margin: 0 0 10px 0; }
         .chart { height: 75px; display: flex; align-items: flex-end; gap: 6px; border-bottom: 1px solid #f1f5f9; }
         .bar { width: 100%; border-radius: 4px 4px 0 0; background: #e2e8f0; }
         .bar-live { background: #4f46e5; transition: height 0.4s; }
@@ -57,7 +57,7 @@
     </div>
 
     <!-- MODALES -->
-    <div id="m-q" class="modal"><div class="m-card"><div style="display:flex;justify-content:space-between;"><b>Bilan Clinique</b><button onclick="toggleM('q',false)" style="background:none;border:none;font-size:22px;">&times;</button></div>
+    <div id="m-q" class="modal"><div class="m-card"><div style="display:flex;justify-content:space-between;"><b>Bilan Clinique</b><button type="button" onclick="toggleM('q',false)" style="background:none;border:none;font-size:22px;">&times;</button></div>
         <form onsubmit="runQ(event)">
             <p style="font-size:12px;margin:8px 0 4px 0;">1. Êtes-vous épuisé(e) en fin de journée ?</p>
             <label class="radio-label"><input type="radio" name="r1" value="100" required> Souvent</label><label class="radio-label"><input type="radio" name="r1" value="0"> Jamais</label>
@@ -69,15 +69,15 @@
         </form>
     </div></div>
 
-    <div id="m-c" class="modal"><div class="m-card"><div style="display:flex;justify-content:space-between;"><b>Cohérence Cardiaque</b><button onclick="toggleM('c',false)" style="background:none;border:none;font-size:20px;">&times;</button></div><div style="text-align:center;margin:10px 0;"><div id="c-node" class="circle"></div><p id="c-txt" style="font-size:13px;font-weight:700;">Prêt...</p></div><button type="button" id="c-btn" onclick="runR()" class="btn btn-p">Démarrer</button></div></div>
+    <div id="m-c" class="modal"><div class="m-card"><div style="display:flex;justify-content:space-between;"><b>Cohérence Cardiaque</b><button type="button" onclick="toggleM('c',false)" style="background:none;border:none;font-size:20px;">&times;</button></div><div style="text-align:center;margin:10px 0;"><div id="c-node" class="circle"></div><p id="c-txt" style="font-size:13px;font-weight:700;">Prêt...</p></div><button type="button" id="c-btn" onclick="runR()" class="btn btn-p">Démarrer</button></div></div>
     <div id="m-cr" class="modal"><div class="m-card" style="border:3px solid #dc2626;text-align:center;"><h2>⚠️ URGENCE</h2><p style="font-size:12px;">Appelez gratuitement le numéro national confidentiel :</p><a href="tel:3114" style="font-size:32px;font-weight:900;color:#dc2626;text-decoration:none;display:block;margin:10px 0;">3114</a><div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;"><a href="tel:15" class="btn btn-d" style="text-decoration:none;line-height:44px;">🚑 15</a><a href="tel:112" class="btn btn-d" style="text-decoration:none;line-height:44px;">🇪🇺 112</a></div></div></div>
 
     <script>
         function toggleM(t,o){document.getElementById('m-'+t).style.display=o?'flex':'none';if(!o && t==='c')stopR();}
         function runQ(e){e.preventDefault();let d=new FormData(e.target);let s=(parseInt(d.get('r1'))+parseInt(d.get('r2'))+parseInt(d.get('r3')))/3;toggleM('q',false);document.getElementById('lbl-c').innerText="Évaluation enregistrée";upD(s,"Bilan Global");}
         function runFlash(e){e.preventDefault();let d=new FormData(e.target);let f=parseInt(d.get('fat')),l=parseInt(d.get('luc')),m=parseInt(d.get('mor'));let s=((f*10)+(100-(l*10))+(100-(m*10)))/3;upD(s,"Indice Flash");}
-        function upD(s,p){let b=document.getElementById('g-bar'),t=document.getElementById('txt-s');b.style.height=(100-s)+'%';if(s>=66){t.innerText=p+" : Critique";t.style.color="#dc2626";b.style.backgroundColor="#dc2626";}else if(s>=33){t.innerText=p+" : Vigilance";t.style.color="#d97706";b.style.backgroundColor="#d97706";}else{t.innerText=p+" : Stable";t.style.color="#059669";b.style.backgroundColor="#059669";}}
+        function upD(s,p){let b=document.getElementById('g-bar');let t=document.getElementById('txt-s');b.style.height=(100-s)+'%';if(s>=66){t.innerText=p+" : Critique";t.style.color="#dc2626";b.style.backgroundColor="#dc2626";}else if(s>=33){t.innerText=p+" : Vigilance";t.style.color="#d97706";b.style.backgroundColor="#d97706";}else{t.innerText=p+" : Stable";t.style.color="#059669";b.style.backgroundColor="#059669";}}
         let cI=null,rAct=false;
         function runR(){if(rAct){stopR();return;}rAct=true;document.getElementById('c-btn').innerText="Arrêter";document.getElementById('c-btn').style.backgroundColor="#dc2626";let nd=document.getElementById('c-node'),tx=document.getElementById('c-txt');function cycle(){tx.innerText="🌸 Inspirez (5s)...";nd.classList.add('grow');setTimeout(()=>{if(!rAct)return;tx.innerText="💨 Expirez (5s)...";nd.classList.remove('grow');},5000);}cycle();cI=setInterval(cycle,10000);}
         function stopR(){rAct=false;clearInterval(cI);document.getElementById('c-node').classList.remove('grow');document.getElementById('c-txt').innerText="Session arrêtée";document.getElementById('c-btn').innerText="Démarrer";document.getElementById('c-btn').style.backgroundColor="#4f46e5";}
-        function runJ(){let txt=document.getElementById('j-in').value.toLowerCase();if(['suicide','en finir','me tuer','mourir','crever'].some(m=>txt.includes(m))){document.getElementById('m-cr').style.display='flex';}else if(txt.trim()===""){alert("Journal vide.");}else{alert("Enregistré.");document.getElementById('j-in').value="";document.getElementById('g-bar').style.height="85hashes";document.getElementById('g-bar').style.backgroundColor="#059669";document.getElementById('txt-s').innerText="Journal : Actif";document.getElementById('txt-s').style.color="#059669";}}
+        function runJ(){let txt=document.getElementById('j-in').value.toLowerCase();if(['suicide','en finir','me tuer','mourir','crever'].some(m=>txt.includes(m))){document.getElementById('m-cr').style.display='flex';}else if(txt.trim()===""){alert("Journal vide.");}else{alert("Enregistré.");document.getElementById('j-in').value="";document.getElementById('g-bar').style.height="85%";document.getElementById('g-bar').style.backgroundColor="#059669";document.getElementById('txt-s').innerText="Journal : Actif";document.getElementById('txt-s').style.color="#059669";}}
