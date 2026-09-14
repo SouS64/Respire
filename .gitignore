@@ -1,0 +1,8 @@
+# Fichiers système
+.DS_Store
+Thumbs.db
+*.log
+
+# Dossiers temporaires d'éditeurs mobiles
+.koder/
+.acode/
