@@ -5,109 +5,139 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Respire IA</title>
     <style>
-        body { font-family: -apple-system, sans-serif; background: #f8fafc; color: #1e293b; margin: 0; padding: 12px; min-height: 100vh; display: flex; flex-direction: column; justify-content: space-between; -webkit-tap-highlight-color: transparent; }
+        body { font-family: -apple-system, sans-serif; background: #f8fafc; color: #1e293b; margin: 0; padding: 12px; min-height: 100vh; -webkit-tap-highlight-color: transparent; }
         header { background: #fff; padding: 12px; border-bottom: 1px solid #e2e8f0; margin: -12px -12px 12px -12px; display: flex; justify-content: space-between; align-items: center; }
-        .v-tag { font-size: 10px; background: #e2e8f0; color: #475569; padding: 2px 6px; border-radius: 4px; font-weight: 700; margin-right: 12px; }
+        .v-tag { font-size: 10px; background: #e2e8f0; color: #475569; padding: 2px 6px; border-radius: 4px; font-weight: 700; }
         .card { background: #fff; border: 1px solid #e2e8f0; border-radius: 14px; padding: 14px; margin-bottom: 12px; }
         .btn { width: 100%; min-height: 44px; border: none; border-radius: 12px; font-weight: 600; font-size: 14px; cursor: pointer; margin-top: 8px; -webkit-appearance: none; }
         .btn-p { background: #4f46e5; color: #fff; }
         .btn-s { background: #fff; color: #334155; border: 1px solid #cbd5e1; }
         .btn-d { background: #0f172a; color: #fff; }
+        .btn-sos { background: #fee2e2; color: #dc2626; font-size: 12px; min-height: 36px; padding: 0 10px; width: auto; margin: 0; }
         .status { font-size: 18px; font-weight: 800; margin: 0 0 10px 0; }
         .chart { height: 75px; display: flex; align-items: flex-end; gap: 6px; border-bottom: 1px solid #f1f5f9; }
         .bar { width: 100%; border-radius: 4px 4px 0 0; background: #e2e8f0; }
         .bar-live { background: #4f46e5; transition: height 0.4s; }
         textarea { width: 100%; padding: 12px; border: 1px solid #cbd5e1; border-radius: 12px; font-size: 14px; box-sizing: border-box; resize: none; margin: 8px 0; -webkit-appearance: none; }
-
-        /* Sections dépliantes intégrées (Zéro Pop-up) */
         .inline-section { background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 10px; padding: 12px; margin-top: 10px; display: none; }
-        .radio-label { display: flex; align-items: center; gap: 8px; padding: 10px; background: #fff; border: 1px solid #e2e8f0; border-radius: 8px; margin: 4px 0; font-size: 13px; }
+        .radio-label { display: flex; align-items: center; gap: 8px; padding: 9px; background: #fff; border: 1px solid #e2e8f0; border-radius: 8px; margin: 4px 0; font-size: 13px; }
         .sld { margin-bottom: 10px; font-size: 13px; font-weight: 600; }
         .sld input { width: 100%; accent-color: #4f46e5; margin: 6px 0; }
         .circle { width: 60px; height: 60px; background: #0d9488; border-radius: 50%; margin: 12px auto; transition: transform 5s ease-in-out; }
         .circle.grow { transform: scale(1.4); }
         .tip { background: #f0fdf4; border-left: 4px solid #16a34a; padding: 8px; border-radius: 4px; margin-bottom: 8px; font-size: 12px; }
-
-        /* Toast interne (remplace alert(), souvent bloqué dans les webviews/aperçus embarqués) */
+        .muted { font-size: 12px; color: #94a3b8; margin: 6px 0; }
+        .q-block { margin-bottom: 14px; }
+        .q-block h4 { font-size: 12px; text-transform: uppercase; letter-spacing: 0.03em; color: #4f46e5; margin: 0 0 6px 0; }
+        .banner { background: #fffbeb; border: 1px solid #fde68a; color: #92400e; border-radius: 10px; padding: 10px; font-size: 12px; margin-bottom: 10px; }
+        .action-item { border: 1px solid #e2e8f0; border-radius: 10px; padding: 10px; margin-bottom: 8px; }
+        .action-item .tag { display: inline-block; font-size: 10px; font-weight: 700; color: #4f46e5; background: #eef2ff; padding: 2px 6px; border-radius: 4px; margin-bottom: 4px; }
+        .action-item .row { display: flex; gap: 8px; margin-top: 8px; }
+        .action-item .row button { flex: 1; margin-top: 0; min-height: 38px; font-size: 12px; }
+        .streak { font-size: 11px; color: #059669; font-weight: 700; }
+        .domain-badge { display: inline-flex; align-items: center; gap: 4px; font-size: 11px; background: #f1f5f9; border-radius: 20px; padding: 4px 8px; margin: 2px 3px 2px 0; }
+        .disclaimer { font-size: 11px; color: #94a3b8; text-align: center; padding: 4px 8px 0 8px; }
         #toast-wrap { position: fixed; left: 12px; right: 12px; bottom: 12px; z-index: 999; display: flex; flex-direction: column; gap: 8px; pointer-events: none; }
         .toast { background: #0f172a; color: #fff; padding: 12px 14px; border-radius: 10px; font-size: 13px; font-weight: 600; box-shadow: 0 6px 18px rgba(0,0,0,0.18); opacity: 0; transform: translateY(8px); transition: opacity 0.25s ease, transform 0.25s ease; }
         .toast.show { opacity: 1; transform: translateY(0); }
     </style>
 </head>
 <body>
-    <div>
-        <header><h1 style="margin:0;font-size:17px;color:#4f46e5;padding-left:12px;">🫁 Respire IA</h1><span class="v-tag">v1.2.7</span></header>
-        <main>
-            <!-- Module Bilan de Fond Intégré -->
-            <div class="card">
-                <h3>📋 Bilan de Fond</h3>
-                <button type="button" id="go-q" class="btn btn-p">📊 Déplier le Bilan Complet</button>
-                <p id="lbl-c" style="font-size:11px;color:#94a3b8;text-align:center;margin:6px 0 0 0;">Aucun bilan global aujourd'hui</p>
-
-                <div id="box-q" class="inline-section">
-                    <p style="font-size:12px;margin:4px 0;">1. Êtes-vous épuisé(e) en fin de journée ?</p>
-                    <label class="radio-label"><input type="radio" name="r1" value="100"> Souvent</label>
-                    <label class="radio-label"><input type="radio" name="r1" value="0" checked> Jamais</label>
-                    <p style="font-size:12px;margin:8px 0 4px 0;">2. Votre poste use-t-il votre énergie ?</p>
-                    <label class="radio-label"><input type="radio" name="r2" value="100"> Oui</label>
-                    <label class="radio-label"><input type="radio" name="r2" value="0" checked> Non</label>
-                    <button type="button" id="sub-q" class="btn btn-p" style="margin-top:10px;">Soumettre le bilan</button>
-                </div>
+    <header>
+        <h1 style="margin:0;font-size:16px;color:#4f46e5;">🫁 Respire IA</h1>
+        <div style="display:flex;align-items:center;gap:8px;">
+            <button type="button" id="sos-btn" class="btn btn-sos">🆘 Aide immédiate</button>
+            <span class="v-tag">v2.0</span>
+        </div>
+    </header>
+ 
+    <main>
+        <!-- Diagnostic complet multi-domaines -->
+        <div class="card">
+            <h3 style="margin-top:0;">📋 Diagnostic complet</h3>
+            <div id="diag-banner"></div>
+            <p id="diag-status" class="muted">Chargement…</p>
+            <button type="button" id="go-q" class="btn btn-p">Commencer le diagnostic</button>
+            <div id="box-q" class="inline-section"></div>
+        </div>
+ 
+        <!-- Suivi quotidien flash -->
+        <div class="card">
+            <h3>⚡ Suivi Flash (F.L.M.)</h3>
+            <div class="sld"><label>Fatigue : <span id="v-fat">5</span>/10</label><input type="range" id="f-sl" min="1" max="10" value="5"></div>
+            <div class="sld"><label>Lucidité : <span id="v-luc">5</span>/10</label><input type="range" id="l-sl" min="1" max="10" value="5"></div>
+            <div class="sld"><label>Moral : <span id="v-mor">5</span>/10</label><input type="range" id="m-sl" min="1" max="10" value="5"></div>
+            <button type="button" id="go-f" class="btn btn-s">📉 Calculer l'Indice Flash</button>
+        </div>
+ 
+        <!-- Plan d'action personnalisé -->
+        <div class="card">
+            <h3 style="margin-top:0;">🎯 Mon plan d'action</h3>
+            <p id="plan-empty" class="muted">Faites le diagnostic complet pour recevoir des actions personnalisées et évolutives.</p>
+            <div id="plan-reco"></div>
+            <div id="plan-active"></div>
+        </div>
+ 
+        <!-- Aujourd'hui -->
+        <div class="card">
+            <p class="status" id="txt-s">Équilibre Initial</p>
+            <div class="chart"><div class="bar" style="height:60%;"></div><div class="bar bar-live" id="g-bar" style="height:50%;"></div></div>
+        </div>
+ 
+        <!-- Évolution mesurée dans le temps -->
+        <div class="card">
+            <h3 style="margin-top:0;">📈 Mon évolution</h3>
+            <p id="evo-empty" class="muted">Pas encore assez de données. Refaites un diagnostic complet plus tard pour voir votre courbe.</p>
+            <div id="evo-content" style="display:none;">
+                <svg id="evo-svg" viewBox="0 0 300 70" style="width:100%;height:70px;"><path id="evo-path" fill="none" stroke="#4f46e5" stroke-width="2.5"/></svg>
+                <p id="evo-delta" style="font-size:13px;font-weight:700;margin:8px 0 6px 0;"></p>
+                <div id="evo-domains"></div>
             </div>
-
-            <!-- Module Curseurs Quotidien -->
-            <div class="card">
-                <h3>⚡ Suivi Flash (F.L.M.)</h3>
-                <div>
-                    <div class="sld"><label>Fatigue : <span id="v-fat">5</span>/10</label><input type="range" id="f-sl" min="1" max="10" value="5"></div>
-                    <div class="sld"><label>Lucidité : <span id="v-luc">5</span>/10</label><input type="range" id="l-sl" min="1" max="10" value="5"></div>
-                    <div class="sld"><label>Moral : <span id="v-mor">5</span>/10</label><input type="range" id="m-sl" min="1" max="10" value="5"></div>
-                    <button type="button" id="go-f" class="btn btn-s">📉 Calculer l'Indice Flash</button>
-                </div>
+        </div>
+ 
+        <!-- Exercices -->
+        <div class="card">
+            <h3>🧘 Exercices</h3>
+            <button type="button" id="go-c" class="btn btn-s">🧘 Déplier la Cohérence Cardiaque</button>
+            <div id="box-c" class="inline-section" style="text-align:center;">
+                <div id="c-node" class="circle"></div>
+                <p id="c-txt" style="font-size:13px;font-weight:700;margin:6px 0;">Prêt...</p>
+                <button type="button" id="c-btn" class="btn btn-p">Démarrer la respiration</button>
             </div>
-
-            <!-- Module Exercices Intégré -->
-            <div class="card">
-                <h3>🧘 Exercices</h3>
-                <button type="button" id="go-c" class="btn btn-s">🧘 Déplier la Cohérence Cardiaque</button>
-
-                <div id="box-c" class="inline-section" style="text-align:center;">
-                    <div id="c-node" class="circle"></div>
-                    <p id="c-txt" style="font-size:13px;font-weight:700;margin:6px 0;">Prêt...</p>
-                    <button type="button" id="c-btn" class="btn btn-p">Démarrer la respiration</button>
-                </div>
-            </div>
-
-            <!-- Tableau de bord -->
-            <div class="card"><p class="status" id="txt-s">Équilibre Initial</p><div class="chart"><div class="bar" style="height:60%;"></div><div class="bar bar-live" id="g-bar" style="height:50%;"></div></div></div>
-
-            <!-- Cellule d'Urgence Intégrée (Toujours présente mais cachée, s'ouvre dans le flux) -->
-            <div id="box-cr" class="card" style="border:3px solid #dc2626; text-align:center; display:none;">
-                <h2 style="color:#dc2626;font-size:18px;margin:0 0 6px 0;">⚠️ URGENCE</h2>
-                <p style="font-size:12px;margin:0 0 10px 0;">Appelez gratuitement le numéro national confidentiel :</p>
-                <a href="tel:3114" style="font-size:32px;font-weight:900;color:#dc2626;text-decoration:none;display:block;margin:6px 0;">3114</a>
-                <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;"><a href="tel:15" class="btn btn-d" style="text-decoration:none;line-height:44px;">🚑 15</a><a href="tel:112" class="btn btn-d" style="text-decoration:none;line-height:44px;">🇪🇺 112</a></div>
-            </div>
-
-            <!-- Fiches Conseils & Tips -->
-            <div class="card"><h3>💡 Tips de Prévention</h3>
-                <div class="tip"><strong>Surcharge :</strong> Choisissez 2 priorités vitales, reportez le reste.</div>
-                <div class="tip" style="background:#f0f9ff;border-left-color:#0284c7;"><strong>Lucidité :</strong> Blocs de 45 min suivis de 5 min sans écran.</div>
-            </div>
-
-            <!-- Journal -->
-            <div class="card"><h3>📝 Journal</h3><textarea id="j-in" rows="2" placeholder="Écrivez ici..."></textarea><button type="button" id="go-j" class="btn btn-d">Enregistrer l'entrée</button></div>
-        </main>
-    </div>
-
-    <footer>Respire IA — Version de secours robuste.</footer>
-
+        </div>
+ 
+        <!-- Urgence -->
+        <div id="box-cr" class="card" style="border:3px solid #dc2626; text-align:center; display:none;">
+            <h2 style="color:#dc2626;font-size:18px;margin:0 0 6px 0;">⚠️ URGENCE</h2>
+            <p style="font-size:12px;margin:0 0 10px 0;">Appelez gratuitement le numéro national confidentiel :</p>
+            <a href="tel:3114" style="font-size:32px;font-weight:900;color:#dc2626;text-decoration:none;display:block;margin:6px 0;">3114</a>
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;"><a href="tel:15" class="btn btn-d" style="text-decoration:none;line-height:44px;">🚑 15</a><a href="tel:112" class="btn btn-d" style="text-decoration:none;line-height:44px;">🇪🇺 112</a></div>
+        </div>
+ 
+        <!-- Tips -->
+        <div class="card">
+            <h3>💡 Tips de Prévention</h3>
+            <div id="tip-dynamic"></div>
+            <div class="tip"><strong>Surcharge :</strong> Choisissez 2 priorités vitales, reportez le reste.</div>
+            <div class="tip" style="background:#f0f9ff;border-left-color:#0284c7;"><strong>Lucidité :</strong> Blocs de 45 min suivis de 5 min sans écran.</div>
+        </div>
+ 
+        <!-- Journal -->
+        <div class="card">
+            <h3>📝 Journal</h3>
+            <textarea id="j-in" rows="2" placeholder="Écrivez ici..."></textarea>
+            <button type="button" id="go-j" class="btn btn-d">Enregistrer l'entrée</button>
+        </div>
+ 
+        <p class="disclaimer">Cet outil aide à l'auto-observation, il ne remplace pas un avis médical ou psychologique. En cas de mal-être important, parlez-en à un professionnel de santé.</p>
+    </main>
+ 
     <div id="toast-wrap"></div>
-
+ 
     <script>
     document.addEventListener('DOMContentLoaded', function () {
-
-        /* --- Toast interne : remplace window.alert(), souvent bloqué en webview/iframe sandbox --- */
+ 
+        /* ============ TOAST (remplace alert, bloqué dans certains webviews) ============ */
         function toast(msg) {
             var wrap = document.getElementById('toast-wrap');
             var el = document.createElement('div');
@@ -115,25 +145,304 @@
             el.textContent = msg;
             wrap.appendChild(el);
             requestAnimationFrame(function () { el.classList.add('show'); });
-            setTimeout(function () {
-                el.classList.remove('show');
-                setTimeout(function () { el.remove(); }, 250);
-            }, 2500);
+            setTimeout(function () { el.classList.remove('show'); setTimeout(function () { el.remove(); }, 250); }, 2600);
         }
-
-        /* --- Actualisation des curseurs --- */
-        document.getElementById('f-sl').oninput = function () { document.getElementById('v-fat').innerText = this.value; };
-        document.getElementById('l-sl').oninput = function () { document.getElementById('v-luc').innerText = this.value; };
-        document.getElementById('m-sl').oninput = function () { document.getElementById('v-mor').innerText = this.value; };
-
-        /* --- Accordéons (in-app, pas de popup) --- */
+ 
+        function todayISO() { return new Date().toISOString().slice(0, 10); }
+        function daysAgoISO(n) { var d = new Date(); d.setDate(d.getDate() - n); return d.toISOString().slice(0, 10); }
+ 
+        /* ============ DONNÉES : domaines, questions, banque d'actions ============ */
+        var LIKERT = [
+            { v: 0, l: 'Jamais' }, { v: 25, l: 'Rarement' }, { v: 50, l: 'Parfois' },
+            { v: 75, l: 'Souvent' }, { v: 100, l: 'Toujours' }
+        ];
+ 
+        var DOMAINS = [
+            { id: 'energie', label: 'Énergie', icon: '🔋', questions: [
+                'Vous sentez-vous épuisé(e) en fin de journée ?',
+                'Manquez-vous d\'énergie pour vos activités habituelles ?'
+            ]},
+            { id: 'stress', label: 'Stress', icon: '🌪️', questions: [
+                'Vous sentez-vous submergé(e) par votre charge de travail ou vos obligations ?',
+                'Avez-vous du mal à décrocher mentalement de vos soucis ?'
+            ]},
+            { id: 'sommeil', label: 'Sommeil', icon: '😴', questions: [
+                'Avez-vous du mal à vous endormir ou vous réveillez-vous fatigué(e) ?',
+                'Votre sommeil est-il interrompu ou insuffisant ?'
+            ]},
+            { id: 'lien', label: 'Lien social', icon: '🤝', questions: [
+                'Vous sentez-vous isolé(e) ou coupé(e) des autres ?',
+                'Évitez-vous de parler de ce que vous vivez à votre entourage ?'
+            ]},
+            { id: 'sens', label: 'Sens', icon: '🧭', questions: [
+                'Avez-vous l\'impression que ce que vous faites n\'a plus de sens ?',
+                'Avez-vous perdu l\'envie de faire des choses que vous aimiez ?'
+            ]}
+        ];
+ 
+        var ACTIONS = [
+            { id: 'e1', domain: 'energie', level: 'leger', text: 'Faire une vraie pause de 10 min, sans écran, toutes les 90 min.' },
+            { id: 'e2', domain: 'energie', level: 'leger', text: 'Se coucher 30 minutes plus tôt ce soir.' },
+            { id: 'e3', domain: 'energie', level: 'modere', text: 'Bloquer 20 min dans la journée rien que pour soi, sans sollicitation.' },
+            { id: 's1', domain: 'stress', level: 'leger', text: 'Pratiquer 3 min de cohérence cardiaque (exercice ci-dessous).' },
+            { id: 's2', domain: 'stress', level: 'leger', text: 'Noter 2 priorités réelles du jour et reporter explicitement le reste.' },
+            { id: 's3', domain: 'stress', level: 'modere', text: 'Identifier une tâche à déléguer ou à refuser cette semaine.' },
+            { id: 'so1', domain: 'sommeil', level: 'leger', text: 'Couper les écrans 30 minutes avant le coucher.' },
+            { id: 'so2', domain: 'sommeil', level: 'leger', text: 'Fixer une heure de coucher stable, week-end compris.' },
+            { id: 'so3', domain: 'sommeil', level: 'modere', text: 'Éviter la caféine après 14h aujourd\'hui.' },
+            { id: 'l1', domain: 'lien', level: 'leger', text: 'Envoyer un message à un proche pour prendre des nouvelles.' },
+            { id: 'l2', domain: 'lien', level: 'leger', text: 'Partager une difficulté du moment avec une personne de confiance.' },
+            { id: 'l3', domain: 'lien', level: 'modere', text: 'Planifier un moment convivial dans les 7 prochains jours.' },
+            { id: 'm1', domain: 'sens', level: 'leger', text: 'Noter ce soir une chose, même petite, qui s\'est bien passée.' },
+            { id: 'm2', domain: 'sens', level: 'leger', text: 'Se fixer un objectif simple et atteignable pour demain.' },
+            { id: 'm3', domain: 'sens', level: 'modere', text: 'Repérer ce qui, cette semaine, a eu du sens — et lui faire plus de place.' }
+        ];
+ 
+        /* ============ ÉTAT + PERSISTANCE (window.storage) ============ */
+        var state = { diagnostics: [], daily: [], actions: {} };
+ 
+        async function safeGet(key, fallback) {
+            try {
+                var r = await window.storage.get(key, false);
+                return r && r.value ? JSON.parse(r.value) : fallback;
+            } catch (e) { return fallback; }
+        }
+        async function safeSet(key, value) {
+            try { await window.storage.set(key, JSON.stringify(value), false); }
+            catch (e) { toast('Sauvegarde impossible pour le moment.'); }
+        }
+ 
+        async function loadState() {
+            state.diagnostics = await safeGet('coach:diagnostics', []);
+            state.daily = await safeGet('coach:daily', []);
+            state.actions = await safeGet('coach:actions', {});
+        }
+        function saveDiagnostics() { return safeSet('coach:diagnostics', state.diagnostics); }
+        function saveDaily() { return safeSet('coach:daily', state.daily); }
+        function saveActions() { return safeSet('coach:actions', state.actions); }
+ 
+        /* ============ DASHBOARD "AUJOURD'HUI" ============ */
+        function upD(s, p) {
+            var b = document.getElementById('g-bar');
+            var t = document.getElementById('txt-s');
+            b.style.height = (100 - s) + '%';
+            if (s >= 66) { t.innerText = p + ' : Critique'; t.style.color = '#dc2626'; b.style.backgroundColor = '#dc2626'; }
+            else if (s >= 33) { t.innerText = p + ' : Vigilance'; t.style.color = '#d97706'; b.style.backgroundColor = '#d97706'; }
+            else { t.innerText = p + ' : Stable'; t.style.color = '#059669'; b.style.backgroundColor = '#059669'; }
+        }
+ 
+        /* ============ DIAGNOSTIC : rendu des questions ============ */
+        function renderQuestions() {
+            var box = document.getElementById('box-q');
+            var html = '';
+            DOMAINS.forEach(function (d) {
+                html += '<div class="q-block"><h4>' + d.icon + ' ' + d.label + '</h4>';
+                d.questions.forEach(function (q, qi) {
+                    var name = d.id + '-' + qi;
+                    html += '<p style="font-size:12px;margin:6px 0 4px 0;">' + q + '</p>';
+                    LIKERT.forEach(function (opt) {
+                        html += '<label class="radio-label"><input type="radio" name="' + name + '" value="' + opt.v + '"> ' + opt.l + '</label>';
+                    });
+                });
+                html += '</div>';
+            });
+            html += '<button type="button" id="sub-q" class="btn btn-p">Valider le diagnostic</button>';
+            box.innerHTML = html;
+            document.getElementById('sub-q').onclick = submitDiagnostic;
+        }
+ 
+        function submitDiagnostic() {
+            var domainScores = {};
+            var missing = false;
+            DOMAINS.forEach(function (d) {
+                var total = 0, count = 0;
+                d.questions.forEach(function (q, qi) {
+                    var checked = document.querySelector('input[name="' + d.id + '-' + qi + '"]:checked');
+                    if (!checked) { missing = true; return; }
+                    total += parseInt(checked.value); count++;
+                });
+                domainScores[d.id] = count ? Math.round(total / count) : 0;
+            });
+            if (missing) { toast('Merci de répondre à toutes les questions.'); return; }
+ 
+            var overall = Math.round(DOMAINS.reduce(function (sum, d) { return sum + domainScores[d.id]; }, 0) / DOMAINS.length);
+            state.diagnostics.push({ date: todayISO(), ts: Date.now(), domains: domainScores, overall: overall });
+            if (state.diagnostics.length > 30) state.diagnostics.shift();
+            saveDiagnostics();
+ 
+            document.getElementById('box-q').style.display = 'none';
+            document.getElementById('go-q').innerText = 'Refaire le diagnostic';
+            upD(overall, 'Bilan Global');
+            toast('Diagnostic enregistré. Votre plan d\'action a été mis à jour.');
+ 
+            renderDiagStatus();
+            renderPlan();
+            renderEvolution();
+            renderDynamicTip();
+        }
+ 
+        /* ============ BANNIÈRE / STATUT DIAGNOSTIC ============ */
+        function renderDiagStatus() {
+            var statusEl = document.getElementById('diag-status');
+            var bannerEl = document.getElementById('diag-banner');
+            var goBtn = document.getElementById('go-q');
+            bannerEl.innerHTML = '';
+ 
+            if (state.diagnostics.length === 0) {
+                statusEl.innerText = 'Aucun diagnostic effectué pour le moment.';
+                goBtn.innerText = 'Commencer le diagnostic';
+                return;
+            }
+            var last = state.diagnostics[state.diagnostics.length - 1];
+            statusEl.innerText = 'Dernier diagnostic : ' + last.date + ' — score global ' + last.overall + '/100.';
+            goBtn.innerText = 'Refaire le diagnostic';
+ 
+            var daysSince = Math.floor((Date.now() - last.ts) / 86400000);
+            if (daysSince >= 7) {
+                bannerEl.innerHTML = '<div class="banner">⏳ Cela fait ' + daysSince + ' jours depuis votre dernier bilan complet. Refaites-le pour ajuster votre plan d\'action à votre évolution.</div>';
+            }
+        }
+ 
+        /* ============ PLAN D'ACTION ADAPTATIF ============ */
+        function pickRecommendations() {
+            if (state.diagnostics.length === 0) return [];
+            var latest = state.diagnostics[state.diagnostics.length - 1].domains;
+            var weak = DOMAINS
+                .map(function (d) { return { id: d.id, label: d.label, icon: d.icon, score: latest[d.id] }; })
+                .filter(function (d) { return d.score >= 50; })
+                .sort(function (a, b) { return b.score - a.score; });
+ 
+            var picks = [];
+            weak.forEach(function (w) {
+                if (picks.length >= 3) return;
+                var candidates = ACTIONS.filter(function (a) {
+                    return a.domain === w.id && !(state.actions[a.id] && state.actions[a.id].adopted);
+                }).sort(function (a, b) { return (a.level === 'leger' ? 0 : 1) - (b.level === 'leger' ? 0 : 1); });
+                if (candidates[0]) picks.push(candidates[0]);
+            });
+            if (picks.length === 0) {
+                picks = ACTIONS.filter(function (a) { return !(state.actions[a.id] && state.actions[a.id].adopted); }).slice(0, 2);
+            }
+            return picks;
+        }
+ 
+        function adoptAction(id) {
+            state.actions[id] = { adopted: true, streak: 0, lastDone: null };
+            saveActions();
+            renderPlan();
+            toast('Action ajoutée à votre plan.');
+        }
+        function dropAction(id) {
+            if (state.actions[id]) delete state.actions[id];
+            saveActions();
+            renderPlan();
+        }
+        function markDone(id) {
+            var today = todayISO();
+            var a = state.actions[id] || { adopted: true, streak: 0, lastDone: null };
+            if (a.lastDone === today) { toast('Déjà marquée pour aujourd\'hui !'); return; }
+            a.streak = (a.lastDone === daysAgoISO(1)) ? a.streak + 1 : 1;
+            a.lastDone = today;
+            a.adopted = true;
+            state.actions[id] = a;
+            saveActions();
+            renderPlan();
+            toast('Bravo, action réalisée aujourd\'hui !');
+        }
+ 
+        function renderPlan() {
+            var recoEl = document.getElementById('plan-reco');
+            var activeEl = document.getElementById('plan-active');
+            var emptyEl = document.getElementById('plan-empty');
+ 
+            var recos = pickRecommendations();
+            var activeIds = Object.keys(state.actions).filter(function (id) { return state.actions[id].adopted; });
+ 
+            emptyEl.style.display = (state.diagnostics.length === 0) ? 'block' : 'none';
+ 
+            recoEl.innerHTML = recos.length ? '<p class="muted">Recommandées pour vous :</p>' : '';
+            recos.forEach(function (a) {
+                recoEl.innerHTML += '<div class="action-item"><span class="tag">' + a.domain + ' · ' + (a.level === 'leger' ? 'facile' : 'un peu plus loin') + '</span>' +
+                    '<div>' + a.text + '</div>' +
+                    '<div class="row"><button type="button" class="btn btn-p reco-adopt" data-id="' + a.id + '">Ajouter à mon plan</button></div></div>';
+            });
+ 
+            activeEl.innerHTML = activeIds.length ? '<p class="muted" style="margin-top:10px;">Mes actions en cours :</p>' : '';
+            activeIds.forEach(function (id) {
+                var a = ACTIONS.filter(function (x) { return x.id === id; })[0];
+                if (!a) return;
+                var st = state.actions[id];
+                var doneToday = st.lastDone === todayISO();
+                activeEl.innerHTML += '<div class="action-item"><span class="tag">' + a.domain + '</span>' +
+                    '<div>' + a.text + '</div>' +
+                    '<div class="streak">' + (st.streak > 0 ? '🔥 ' + st.streak + ' jour(s) de suite' : 'Pas encore commencé') + '</div>' +
+                    '<div class="row">' +
+                    '<button type="button" class="btn btn-s done-btn" data-id="' + id + '" ' + (doneToday ? 'disabled' : '') + '>' + (doneToday ? '✅ Fait aujourd\'hui' : 'Marquer fait aujourd\'hui') + '</button>' +
+                    '<button type="button" class="btn btn-s drop-btn" data-id="' + id + '" style="max-width:90px;color:#94a3b8;">Retirer</button>' +
+                    '</div></div>';
+            });
+ 
+            document.querySelectorAll('.reco-adopt').forEach(function (btn) { btn.onclick = function () { adoptAction(this.dataset.id); }; });
+            document.querySelectorAll('.done-btn').forEach(function (btn) { btn.onclick = function () { markDone(this.dataset.id); }; });
+            document.querySelectorAll('.drop-btn').forEach(function (btn) { btn.onclick = function () { dropAction(this.dataset.id); }; });
+        }
+ 
+        /* ============ ÉVOLUTION ============ */
+        function renderEvolution() {
+            var emptyEl = document.getElementById('evo-empty');
+            var contentEl = document.getElementById('evo-content');
+            if (state.diagnostics.length < 2) { emptyEl.style.display = 'block'; contentEl.style.display = 'none'; return; }
+            emptyEl.style.display = 'none';
+            contentEl.style.display = 'block';
+ 
+            var values = state.diagnostics.map(function (d) { return d.overall; });
+            var w = 300, h = 70;
+            var step = w / (values.length - 1);
+            var path = values.map(function (v, i) { return (i === 0 ? 'M' : 'L') + (i * step).toFixed(1) + ' ' + (h - (v / 100) * h).toFixed(1); }).join(' ');
+            document.getElementById('evo-path').setAttribute('d', path);
+ 
+            var first = values[0], last = values[values.length - 1];
+            var delta = last - first;
+            var deltaEl = document.getElementById('evo-delta');
+            if (delta < 0) { deltaEl.style.color = '#059669'; deltaEl.innerText = '▼ Amélioration de ' + Math.abs(delta) + ' points depuis votre premier bilan.'; document.getElementById('evo-path').setAttribute('stroke', '#059669'); }
+            else if (delta > 0) { deltaEl.style.color = '#dc2626'; deltaEl.innerText = '▲ Score en hausse de ' + delta + ' points depuis votre premier bilan — un signe qu\'il peut être utile de renforcer votre plan.'; document.getElementById('evo-path').setAttribute('stroke', '#dc2626'); }
+            else { deltaEl.style.color = '#64748b'; deltaEl.innerText = '▬ Stable depuis votre premier bilan.'; document.getElementById('evo-path').setAttribute('stroke', '#4f46e5'); }
+ 
+            var firstD = state.diagnostics[0].domains, lastD = state.diagnostics[state.diagnostics.length - 1].domains;
+            var badgesEl = document.getElementById('evo-domains');
+            badgesEl.innerHTML = '';
+            DOMAINS.forEach(function (d) {
+                var dd = lastD[d.id] - firstD[d.id];
+                var arrow = dd < 0 ? '▼' : (dd > 0 ? '▲' : '▬');
+                var color = dd < 0 ? '#059669' : (dd > 0 ? '#dc2626' : '#64748b');
+                badgesEl.innerHTML += '<span class="domain-badge" style="color:' + color + '">' + d.icon + ' ' + d.label + ' ' + arrow + '</span>';
+            });
+        }
+ 
+        /* ============ TIP DYNAMIQUE ============ */
+        function renderDynamicTip() {
+            var el = document.getElementById('tip-dynamic');
+            if (state.diagnostics.length === 0) { el.innerHTML = ''; return; }
+            var latest = state.diagnostics[state.diagnostics.length - 1];
+            var worst = DOMAINS.reduce(function (a, b) { return latest.domains[b.id] > latest.domains[a.id] ? b : a; });
+            if (latest.domains[worst.id] < 50) { el.innerHTML = ''; return; }
+            var msgs = {
+                energie: 'Votre énergie semble basse en ce moment : priorisez le repos avant la productivité.',
+                stress: 'Le stress ressort comme votre point de vigilance principal : essayez la cohérence cardiaque ci-dessous.',
+                sommeil: 'Le sommeil ressort comme fragile : une routine stable le soir peut faire une vraie différence.',
+                lien: 'L\'isolement ressort dans votre bilan : un simple message à un proche peut aider.',
+                sens: 'Le sens ressort comme fragile : notez chaque jour une petite chose qui compte pour vous.'
+            };
+            el.innerHTML = '<div class="tip" style="background:#eef2ff;border-left-color:#4f46e5;"><strong>Pour vous :</strong> ' + msgs[worst.id] + '</div>';
+        }
+ 
+        /* ============ ACCORDÉONS ============ */
         document.getElementById('go-q').onclick = function () {
             var box = document.getElementById('box-q');
             var open = box.style.display === 'block';
             box.style.display = open ? 'none' : 'block';
-            this.innerText = open ? '📊 Déplier le Bilan Complet' : '🔼 Replier le questionnaire';
+            if (!open) box.scrollIntoView({ behavior: 'smooth' });
         };
-
         document.getElementById('go-c').onclick = function () {
             var box = document.getElementById('box-c');
             var open = box.style.display === 'block';
@@ -141,40 +450,34 @@
             this.innerText = open ? '🧘 Déplier la Cohérence Cardiaque' : '🔼 Replier l\'exercice';
             if (open) stopR();
         };
-
-        /* --- Soumission du Bilan de Fond --- */
-        document.getElementById('sub-q').onclick = function () {
-            var r1c = document.querySelector('input[name="r1"]:checked');
-            var r2c = document.querySelector('input[name="r2"]:checked');
-            if (!r1c || !r2c) { toast('Merci de répondre aux deux questions.'); return; }
-            var score = (parseInt(r1c.value) + parseInt(r2c.value)) / 2;
-            document.getElementById('box-q').style.display = 'none';
-            document.getElementById('go-q').innerText = '📊 Déplier le Bilan Complet';
-            document.getElementById('lbl-c').innerText = 'Évaluation enregistrée';
-            upD(score, 'Bilan Global');
-            toast('Votre bilan a été pris en compte.');
-        };
-
-        /* --- Soumission du Suivi Flash F.L.M --- */
+ 
+        /* ============ SUIVI FLASH QUOTIDIEN ============ */
+        document.getElementById('f-sl').oninput = function () { document.getElementById('v-fat').innerText = this.value; };
+        document.getElementById('l-sl').oninput = function () { document.getElementById('v-luc').innerText = this.value; };
+        document.getElementById('m-sl').oninput = function () { document.getElementById('v-mor').innerText = this.value; };
+ 
         document.getElementById('go-f').onclick = function () {
             var f = parseInt(document.getElementById('f-sl').value);
             var l = parseInt(document.getElementById('l-sl').value);
             var m = parseInt(document.getElementById('m-sl').value);
             var score = ((f * 10) + (100 - (l * 10)) + (100 - (m * 10))) / 3;
-
+ 
             document.getElementById('f-sl').value = 5; document.getElementById('v-fat').innerText = 5;
             document.getElementById('l-sl').value = 5; document.getElementById('v-luc').innerText = 5;
             document.getElementById('m-sl').value = 5; document.getElementById('v-mor').innerText = 5;
-
+ 
+            state.daily.push({ date: todayISO(), score: Math.round(score) });
+            if (state.daily.length > 60) state.daily.shift();
+            saveDaily();
+ 
             upD(score, 'Indice Flash');
-            toast('Votre indice flash quotidien a été mis à jour.');
+            toast('Indice flash mis à jour.');
         };
-
-        /* --- Soumission du Journal & intercepteur de mots-clés sensibles --- */
+ 
+        /* ============ JOURNAL + DÉTECTION MOTS SENSIBLES ============ */
         document.getElementById('go-j').onclick = function () {
             var txt = document.getElementById('j-in').value.toLowerCase();
             var flagged = ['suicide', 'en finir', 'me tuer', 'mourir', 'crever'].some(function (w) { return txt.includes(w); });
-
             if (flagged) {
                 document.getElementById('box-cr').style.display = 'block';
                 document.getElementById('box-cr').scrollIntoView({ behavior: 'smooth' });
@@ -183,61 +486,49 @@
             } else {
                 toast('Entrée sauvegardée.');
                 document.getElementById('j-in').value = '';
-                document.getElementById('g-bar').style.height = '85%';
-                document.getElementById('g-bar').style.backgroundColor = '#059669';
-                document.getElementById('txt-s').innerText = 'Journal : Actif';
-                document.getElementById('txt-s').style.color = '#059669';
             }
         };
-
-        /* --- Module Cohérence Cardiaque --- */
+ 
+        document.getElementById('sos-btn').onclick = function () {
+            document.getElementById('box-cr').style.display = 'block';
+            document.getElementById('box-cr').scrollIntoView({ behavior: 'smooth' });
+        };
+ 
+        /* ============ COHÉRENCE CARDIAQUE ============ */
         var cI = null, rAct = false;
-
         document.getElementById('c-btn').onclick = function () {
             if (rAct) { stopR(); return; }
-            rAct = true;
-            this.innerText = 'Arrêter';
-            this.style.backgroundColor = '#dc2626';
-
+            rAct = true; this.innerText = 'Arrêter'; this.style.backgroundColor = '#dc2626';
             var nd = document.getElementById('c-node'), tx = document.getElementById('c-txt');
             function cycle() {
-                tx.innerText = '🌸 Inspirez (5s)...';
-                nd.classList.add('grow');
-                setTimeout(function () {
-                    if (!rAct) return;
-                    tx.innerText = '💨 Expirez (5s)...';
-                    nd.classList.remove('grow');
-                }, 5000);
+                tx.innerText = '🌸 Inspirez (5s)...'; nd.classList.add('grow');
+                setTimeout(function () { if (!rAct) return; tx.innerText = '💨 Expirez (5s)...'; nd.classList.remove('grow'); }, 5000);
             }
-            cycle();
-            cI = setInterval(cycle, 10000);
+            cycle(); cI = setInterval(cycle, 10000);
         };
-
         function stopR() {
-            rAct = false;
-            clearInterval(cI);
-            var nd = document.getElementById('c-node');
-            var tx = document.getElementById('c-txt');
-            var btn = document.getElementById('c-btn');
+            rAct = false; clearInterval(cI);
+            var nd = document.getElementById('c-node'), tx = document.getElementById('c-txt'), btn = document.getElementById('c-btn');
             if (nd) nd.classList.remove('grow');
             if (tx) tx.innerText = 'Session arrêtée';
             if (btn) { btn.innerText = 'Démarrer'; btn.style.backgroundColor = '#4f46e5'; }
         }
-
-        /* --- Mise à jour du tableau de bord --- */
-        function upD(s, p) {
-            var b = document.getElementById('g-bar');
-            var t = document.getElementById('txt-s');
-            b.style.height = (100 - s) + '%';
-            if (s >= 66) {
-                t.innerText = p + ' : Critique'; t.style.color = '#dc2626'; b.style.backgroundColor = '#dc2626';
-            } else if (s >= 33) {
-                t.innerText = p + ' : Vigilance'; t.style.color = '#d97706'; b.style.backgroundColor = '#d97706';
-            } else {
-                t.innerText = p + ' : Stable'; t.style.color = '#059669'; b.style.backgroundColor = '#059669';
+ 
+        /* ============ INITIALISATION ============ */
+        renderQuestions();
+        loadState().then(function () {
+            renderDiagStatus();
+            renderPlan();
+            renderEvolution();
+            renderDynamicTip();
+            if (state.diagnostics.length) {
+                upD(state.diagnostics[state.diagnostics.length - 1].overall, 'Bilan Global');
+            } else if (state.daily.length) {
+                upD(state.daily[state.daily.length - 1].score, 'Indice Flash');
             }
-        }
+        });
     });
     </script>
 </body>
 </html>
+ 
