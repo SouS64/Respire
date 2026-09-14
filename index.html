@@ -18,9 +18,10 @@
         .bar { width: 100%; border-radius: 4px 4px 0 0; background: #e2e8f0; }
         .bar-live { background: #4f46e5; transition: height 0.4s; }
         textarea { width: 100%; padding: 12px; border: 1px solid #cbd5e1; border-radius: 12px; font-size: 14px; box-sizing: border-box; resize: none; margin: 8px 0; -webkit-appearance: none; }
-        .modal { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(15,23,42,0.75); z-index: 100; display: none; justify-content: center; align-items: center; padding: 16px; box-sizing: border-box; }
-        .m-card { background: #fff; border-radius: 16px; width: 100%; max-w: 380px; padding: 16px; box-sizing: border-box; max-height: 85vh; overflow-y: auto; }
-        .radio-label { display: flex; align-items: center; gap: 8px; padding: 10px; background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; margin: 4px 0; font-size: 13px; }
+        
+        /* Sections dépliantes intégrées (Zéro Pop-up) */
+        .inline-section { background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 10px; padding: 12px; margin-top: 10px; display: none; }
+        .radio-label { display: flex; align-items: center; gap: 8px; padding: 10px; background: #fff; border: 1px solid #e2e8f0; border-radius: 8px; margin: 4px 0; font-size: 13px; }
         .sld { margin-bottom: 10px; font-size: 13px; font-weight: 600; }
         .sld input { width: 100%; accent-color: #4f46e5; margin: 6px 0; }
         .circle { width: 60px; height: 60px; background: #0d9488; border-radius: 50%; margin: 12px auto; transition: transform 5s ease-in-out; }
@@ -30,89 +31,107 @@
 </head>
 <body>
     <div>
-        <header><h1 style="margin:0;font-size:17px;color:#4f46e5;padding-left:12px;">🫁 Respire IA</h1><span class="v-tag">v1.2.4-beta</span></header>
+        <header><h1 style="margin:0;font-size:17px;color:#4f46e5;padding-left:12px;">🫁 Respire IA</h1><span class="v-tag">v1.2.6-beta</span></header>
         <main>
-            <!-- Module Bilan -->
-            <div class="card"><h3>📋 Bilan de Fond</h3><button type="button" onclick="toggleM('q',true)" class="btn btn-p">📊 Lancer le Bilan Complet</button><p id="lbl-c" style="font-size:11px;color:#94a3b8;text-align:center;margin:6px 0 0 0;">Aucun bilan global aujourd'hui</p></div>
+            <!-- Module Bilan de Fond Intégré -->
+            <div class="card">
+                <h3>📋 Bilan de Fond</h3>
+                <button type="button" id="go-q" class="btn btn-p">📊 Déplier le Bilan Complet</button>
+                <p id="lbl-c" style="font-size:11px;color:#94a3b8;text-align:center;margin:6px 0 0 0;">Aucun bilan global aujourd'hui</p>
+                
+                <div id="box-q" class="inline-section">
+                    <p style="font-size:12px;margin:4px 0;">1. Êtes-vous épuisé(e) en fin de journée ?</p>
+                    <label class="radio-label"><input type="radio" name="r1" value="100"> Souvent</label>
+                    <label class="radio-label"><input type="radio" name="r1" value="0" checked> Jamais</label>
+                    <p style="font-size:12px;margin:8px 0 4px 0;">2. Votre poste use-t-il votre énergie ?</p>
+                    <label class="radio-label"><input type="radio" name="r2" value="100"> Oui</label>
+                    <label class="radio-label"><input type="radio" name="r2" value="0" checked> Non</label>
+                    <button type="button" id="sub-q" class="btn btn-p" style="margin-top:10px;">Soumettre le bilan</button>
+                </div>
+            </div>
             
             <!-- Module Curseurs Quotidien -->
-            <div class="card"><h3>⚡ Suivi Flash (F.L.M.)</h3>
-                <form onsubmit="runFlash(event)">
-                    <div class="sld"><label>Fatigue : <span id="v-fat">5</span>/10</label><input type="range" name="fat" id="f-sl" min="1" max="10" value="5" oninput="document.getElementById('v-fat').innerText=this.value"></div>
-                    <div class="sld"><label>Lucidité : <span id="v-luc">5</span>/10</label><input type="range" name="luc" id="l-sl" min="1" max="10" value="5" oninput="document.getElementById('v-luc').innerText=this.value"></div>
-                    <div class="sld"><label>Moral : <span id="v-mor">5</span>/10</label><input type="range" name="mor" id="m-sl" min="1" max="10" value="5" oninput="document.getElementById('v-mor').innerText=this.value"></div>
-                    <button type="submit" class="btn btn-s">📉 Calculer l'Indice Flash</button>
-                </form>
+            <div class="card">
+                <h3>⚡ Suivi Flash (F.L.M.)</h3>
+                <div>
+                    <div class="sld"><label>Fatigue : <span id="v-fat">5</span>/10</label><input type="range" id="f-sl" min="1" max="10" value="5"></div>
+                    <div class="sld"><label>Lucidité : <span id="v-luc">5</span>/10</label><input type="range" id="l-sl" min="1" max="10" value="5"></div>
+                    <div class="sld"><label>Moral : <span id="v-mor">5</span>/10</label><input type="range" id="m-sl" min="1" max="10" value="5"></div>
+                    <button type="button" id="go-f" class="btn btn-s">📉 Calculer l'Indice Flash</button>
+                </div>
             </div>
 
-            <!-- Module Exercices -->
-            <div class="card"><h3>🧘 Exercices</h3><button type="button" onclick="toggleM('c',true)" class="btn btn-s">🧘 Cohérence Cardiaque</button></div>
+            <!-- Module Exercices Intégré -->
+            <div class="card">
+                <h3>🧘 Exercices</h3>
+                <button type="button" id="go-c" class="btn btn-s">🧘 Déplier la Cohérence Cardiaque</button>
+                
+                <div id="box-c" class="inline-section" style="text-align:center;">
+                    <div id="c-node" class="circle"></div>
+                    <p id="c-txt" style="font-size:13px;font-weight:700;margin:6px 0;">Prêt...</p>
+                    <button type="button" id="c-btn" class="btn btn-p">Démarrer la respiration</button>
+                </div>
+            </div>
             
             <!-- Tableau de bord -->
             <div class="card"><p class="status" id="txt-s">Équilibre Initial</p><div class="chart"><div class="bar" style="height:60%;"></div><div class="bar bar-live" id="g-bar" style="height:50%;"></div></div></div>
             
+            <!-- Cellule d'Urgence Intégrée (Toujours présente mais cachée, s'ouvre dans le flux) -->
+            <div id="box-cr" class="card" style="border:3px solid #dc2626; text-align:center; display:none;">
+                <h2 style="color:#dc2626;font-size:18px;margin:0 0 6px 0;">⚠️ URGENCE</h2>
+                <p style="font-size:12px;margin:0 0 10px 0;">Appelez gratuitement le numéro national confidentiel :</p>
+                <a href="tel:3114" style="font-size:32px;font-weight:900;color:#dc2626;text-decoration:none;display:block;margin:6px 0;">3114</a>
+                <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;"><a href="tel:15" class="btn btn-d" style="text-decoration:none;line-height:44px;">🚑 15</a><a href="tel:112" class="btn btn-d" style="text-decoration:none;line-height:44px;">🇪🇺 112</a></div>
+            </div>
+
             <!-- Fiches Conseils & Tips -->
             <div class="card"><h3>💡 Tips de Prévention</h3>
-                <div class="tip"><strong>Surcharge :</strong> Appliquez la règle du tri. Choisissez 2 priorités vitales, reportez le reste.</div>
-                <div class="tip" style="background:#f0f9ff;border-left-color:#0284c7;"><strong>Lucidité :</strong> Travaillez par blocs de 45 min suivis de 5 min sans écran.</div>
-                <div class="tip" style="background:#fdf2f8;border-left-color:#db2777;"><strong>Moral :</strong> Notez 3 micro-victoires le soir pour casser les ruminations.</div>
+                <div class="tip"><strong>Surcharge :</strong> Choisissez 2 priorités vitales, reportez le reste.</div>
+                <div class="tip" style="background:#f0f9ff;border-left-color:#0284c7;"><strong>Lucidité :</strong> Blocs de 45 min suivis de 5 min sans écran.</div>
             </div>
 
             <!-- Journal -->
-            <div class="card"><h3>📝 Journal</h3><textarea id="j-in" rows="2" placeholder="Écrivez ici... (Tapez 'suicide' pour tester)"></textarea><button type="button" onclick="runJ()" class="btn btn-d">Enregistrer l'entrée</button></div>
+            <div class="card"><h3>📝 Journal</h3><textarea id="j-in" rows="2" placeholder="Écrivez ici... (Tapez 'suicide' pour tester)"></textarea><button type="button" id="go-j" class="btn btn-d">Enregistrer l'entrée</button></div>
         </main>
     </div>
 
-    <!-- MODALE : QUESTIONNAIRE REPRENANT L'ANCIENNE MÉTHODE FONCTIONNELLE -->
-    <div id="m-q" class="modal"><div class="m-card"><div style="display:flex;justify-content:space-between;"><b>Bilan Clinique</b><button type="button" onclick="toggleM('q',false)" style="background:none;border:none;font-size:22px;">&times;</button></div>
-        <form onsubmit="runQ(event)">
-            <p style="font-size:12px;margin:8px 0 4px 0;">1. Êtes-vous épuisé(e) en fin de journée ?</p>
-            <div class="radio-group"><label class="radio-label"><input type="radio" name="r1" value="100" required> Souvent</label><label class="radio-label"><input type="radio" name="r1" value="0"> Jamais</label></div>
-            <p style="font-size:12px;margin:8px 0 4px 0;">2. Votre poste use-t-il votre énergie vitale ?</p>
-            <div class="radio-group"><label class="radio-label"><input type="radio" name="r2" value="100" required> Oui</label><label class="radio-label"><input type="radio" name="r2" value="0"> Non</label></div>
-            <p style="font-size:12px;margin:8px 0 4px 0;">3. Êtes-vous saturé(e) par votre charge mentale ?</p>
-            <div class="radio-group"><label class="radio-label"><input type="radio" name="r3" value="100" required> Oui</label><label class="radio-label"><input type="radio" name="r3" value="0"> Non</label></div>
-            <button type="submit" class="btn btn-p" style="margin-top:10px;">Soumettre</button>
-        </form>
-    </div></div>
-
-    <!-- MODALE : COHÉRENCE CARDIAQUE -->
-    <div id="m-c" class="modal"><div class="m-card"><div style="display:flex;justify-content:space-between;"><b>Cohérence Cardiaque</b><button type="button" onclick="toggleM('c',false)" style="background:none;border:none;font-size:20px;">&times;</button></div><div style="text-align:center;margin:10px 0;"><div id="c-node" class="circle"></div><p id="c-txt" style="font-size:13px;font-weight:700;">Prêt...</p></div><button type="button" id="c-btn" onclick="runR()" class="btn btn-p">Démarrer</button></div></div>
-    
-    <!-- MODALE : CELLULE D'URGENCE (NIVEAU 3) -->
-    <div id="m-cr" class="modal"><div class="m-card" style="border:3px solid #dc2626;text-align:center;"><h2>⚠️ URGENCE</h2><p style="font-size:12px;">Appelez gratuitement le numéro national confidentiel :</p><a href="tel:3114" style="font-size:32px;font-weight:900;color:#dc2626;text-decoration:none;display:block;margin:10px 0;">3114</a><div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;"><a href="tel:15" class="btn btn-d" style="text-decoration:none;line-height:44px;">🚑 15</a><a href="tel:112" class="btn btn-d" style="text-decoration:none;line-height:44px;">🇪🇺 112</a></div><button type="button" onclick="toggleM('cr',false)" class="btn btn-s" style="margin-top:8px;">Fermer la fenêtre</button></div></div>
+    <footer>Respire IA — Version de secours robuste.</footer>
 
     <script>
-        // Utilisation exclusive des anciennes méthodes d'affichage directes acceptées par Chrome iOS
-        function toggleM(t,o){
-            document.getElementById('m-'+t).style.display = o ? 'flex' : 'none';
-            if(!o && t==='c') stopR();
-        }
-        
-        function runQ(e){
-            e.preventDefault();
-            let d = new FormData(e.target);
-            let s = (parseInt(d.get('r1')) + parseInt(d.get('r2')) + parseInt(d.get('r3'))) / 3;
-            toggleM('q',false);
-            document.getElementById('lbl-c').innerText = "Évaluation enregistrée";
-            upD(s,"Bilan Global");
-            alert("Votre bilan clinique de fond a bien été comptabilisé.");
-        }
-        
-        function runFlash(e){
-            e.preventDefault();
-            let d = new FormData(e.target);
-            let f = parseInt(d.get('fat'));
-            let l = parseInt(d.get('luc'));
-            let m = parseInt(d.get('mor'));
-            let s = ((f*10) + (100-(l*10)) + (100-(m*10))) / 3;
-            upD(s,"Indice Flash");
-            alert("Votre indice flash quotidien (F.L.M.) a été calculé avec succès.");
-        }
-        
-        function upD(s,p){
-            let b = document.getElementById('g-bar');
-            let t = document.getElementById('txt-s');
-            b.style.height = (100-s)+'%';
-            if(s>=66){
-                t.innerText = p+" : Critique"; t.style.color = "#dc2626"; b.style.backgroundColor = "#dc2626";}else if(s>=33){t.innerText = p+" : Vigilance"; t.style.color = "#d97706"; b.style.backgroundColor = "#d97706";}else{t.innerText = p+" : Stable"; t.style.color = "#059669"; b.style.backgroundColor = "#059669";}}let cI=null,rAct=false;function runR(){if(rAct){stopR();return;}rAct=true;document.getElementById('c-btn').innerText = "Arrêter";document.getElementById('c-btn').style.backgroundColor = "#dc2626";let nd = document.getElementById('c-node'), tx = document.getElementById('c-txt');function cycle(){tx.innerText = "🌸 Inspirez (5s)..."; nd.classList.add('grow');setTimeout(()=>{ if(!rAct)return; tx.innerText = "💨 Expirez (5s)..."; nd.classList.remove('grow'); },5000);}cycle(); cI = setInterval(cycle, 10000);}function stopR(){rAct=false; clearInterval(cI);document.getElementById('c-node').classList.remove('grow');document.getElementById('c-txt').innerText = "Session arrêtée";document.getElementById('c-btn').innerText = "Démarrer";document.getElementById('c-btn').style.backgroundColor = "#4f46e5";}function runJ(){let txt = document.getElementById('j-in').value.toLowerCase();if(['suicide','en finir','me tuer','mourir','crever'].some(m=>txt.includes(m))){toggleM('cr',true);}else if(txt.trim()===""){alert("Votre journal est vide.");}else{alert("Entrée sauvegardée.");document.getElementById('j-in').value = "";document.getElementById('g-bar').style.height = "85%";document.getElementById('g-bar').style.backgroundColor = "#059669";document.getElementById('txt-s').innerText = "Journal : Actif";document.getElementById('txt-s').style.color = "#059669";}}
+        window.onload = function() {
+            /* --- Actualisation des Curseurs --- */
+            document.getElementById('f-sl').oninput = function() { document.getElementById('v-fat').innerText = this.value; };
+            document.getElementById('l-sl').oninput = function() { document.getElementById('v-luc').innerText = this.value; };
+            document.getElementById('m-sl').oninput = function() { document.getElementById('v-mor').innerText = this.value; };
+
+            /* --- Gestion de l'affichage en accordéon (In-App) --- */
+            document.getElementById('go-q').onclick = function() {
+                let box = document.getElementById('box-q');
+                if(box.style.display === 'block') { box.style.display = 'none'; this.innerText = "📊 Déplier le Bilan Complet"; }
+                else { box.style.display = 'block'; this.innerText = "🔼 Replier le questionnaire"; }
+            };
+            
+            document.getElementById('go-c').onclick = function() {
+                let box = document.getElementById('box-c');
+                if(box.style.display === 'block') { box.style.display = 'none'; this.innerText = "🧘 Déplier la Cohérence Cardiaque"; stopR(); }
+                else { box.style.display = 'block'; this.innerText = "🔼 Replier l'exercice"; }
+            };
+
+            /* --- Soumission du Bilan de Fond --- */
+            document.getElementById('sub-q').onclick = function() {
+                let r1 = parseInt(document.querySelector('input[name="r1"]:checked').value);
+                let r2 = parseInt(document.querySelector('input[name="r2"]:checked').value);
+                let score = (r1 + r2) / 2;
+                document.getElementById('box-q').style.display = 'none';
+                document.getElementById('go-q').innerText = "📊 Déplier le Bilan Complet";
+                document.getElementById('lbl-c').innerText = "Évaluation enregistrée";
+                upD(score, "Bilan Global");
+                alert("Votre bilan a été pris en compte.");
+            };
+
+            /* --- Soumission du Suivi Flash F.L.M --- */
+            document.getElementById('go-f').onclick = function() {
+                let f = parseInt(document.getElementById('f-sl').value);
+                let l = parseInt(document.getElementById('l-sl').value);
+                let m = parseInt(document.getElementById('m-sl').value);
+                let score = ((f * 10) + (100 - (l * 10)) + (100 - (m * 10))) / 3;document.getElementById('f-sl').value = 5; document.getElementById('v-fat').innerText = 5;document.getElementById('l-sl').value = 5; document.getElementById('v-luc').innerText = 5;document.getElementById('m-sl').value = 5; document.getElementById('v-mor').innerText = 5;upD(score, "Indice Flash");alert("Votre indice flash quotidien a été mis à jour.");};/* --- Soumission du Journal & Intercepteur --- */document.getElementById('go-j').onclick = function() {let txt = document.getElementById('j-in').value.toLowerCase();if (['suicide', 'en finir', 'me tuer', 'mourir', 'crever'].some(m => txt.includes(m))) {document.getElementById('box-cr').style.display = 'block';document.getElementById('box-cr').scrollIntoView({ behavior: 'smooth' });} else if (txt.trim() === "") {alert("Votre journal est vide.");} else {alert("Entrée sauvegardée.");document.getElementById('j-in').value = "";document.getElementById('g-bar').style.height = "85%";document.getElementById('g-bar').style.backgroundColor = "#059669";document.getElementById('txt-s').innerText = "Journal : Actif";document.getElementById('txt-s').style.color = "#059669";}};/* --- Module Cohérence Cardiaque --- */let cI = null, rAct = false;document.getElementById('c-btn').onclick = function() {if (rAct) { stopR(); return; }rAct = true; this.innerText = "Arrêter"; this.style.backgroundColor = "#dc2626";let nd = document.getElementById('c-node'), tx = document.getElementById('c-txt');function cycle() {tx.innerText = "🌸 Inspirez (5s)..."; nd.classList.add('grow');setTimeout(() => { if (!rAct) return; tx.innerText = "💨 Expirez (5s)..."; nd.classList.remove('grow'); }, 5000);}cycle(); cI = setInterval(cycle, 10000);};function stopR() {rAct = false; clearInterval(cI);if(document.getElementById('c-node')) document.getElementById('c-node').classList.remove('grow');if(document.getElementById('c-txt')) document.getElementById('c-txt').innerText = "Session arrêtée";let btn = document.getElementById('c-btn');if(btn) { btn.innerText = "Démarrer"; btn.style.backgroundColor = "#4f46e5"; }}function upD(s, p) {let b = document.getElementById('g-bar');let t = document.getElementById('txt-s');b.style.height = (100 - s) + '%';if (s >= 66) {t.innerText = p + " : Critique"; t.style.color = "#dc2626"; b.style.backgroundColor = "#dc2626";} else if (s >= 33) {t.innerText = p + " : Vigilance"; t.style.color = "#d97706"; b.style.backgroundColor = "#d97706";} else {t.innerText = p + " : Stable"; t.style.color = "#059669"; b.style.backgroundColor = "#059669";}}};
