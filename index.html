@@ -5,48 +5,79 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Respire IA</title>
     <style>
-        body { font-family: -apple-system, sans-serif; background: #f8fafc; color: #1e293b; margin: 0; padding: 14px; min-height: 100vh; display: flex; flex-direction: column; justify-content: space-between; }
-        header { background: #fff; padding: 12px; border-bottom: 1px solid #e2e8f0; margin: -14px -14px 14px -14px; text-align: center; }
-        .card { background: #fff; border: 1px solid #e2e8f0; border-radius: 14px; padding: 14px; margin-bottom: 14px; }
-        .btn { width: 100%; min-height: 46px; border: none; border-radius: 12px; font-weight: 600; font-size: 14px; cursor: pointer; margin-top: 8px; -webkit-appearance: none; }
+        body { font-family: -apple-system, sans-serif; background: #f8fafc; color: #1e293b; margin: 0; padding: 12px; min-height: 100vh; display: flex; flex-direction: column; justify-content: space-between; -webkit-tap-highlight-color: transparent; }
+        header { background: #fff; padding: 12px; border-bottom: 1px solid #e2e8f0; margin: -12px -12px 12px -12px; display: flex; justify-content: space-between; align-items: center; }
+        .v-tag { font-size: 10px; background: #e2e8f0; color: #475569; padding: 2px 6px; border-radius: 4px; font-weight: 700; margin-right: 12px; }
+        .card { background: #fff; border: 1px solid #e2e8f0; border-radius: 14px; padding: 14px; margin-bottom: 12px; }
+        .btn { width: 100%; min-height: 44px; border: none; border-radius: 12px; font-weight: 600; font-size: 14px; cursor: pointer; margin-top: 8px; -webkit-appearance: none; }
         .btn-p { background: #4f46e5; color: #fff; }
         .btn-s { background: #fff; color: #334155; border: 1px solid #cbd5e1; }
         .btn-d { background: #0f172a; color: #fff; }
-        .status { font-size: 18px; font-weight: 800; margin: 0 0 10px 0; }
-        .chart { height: 80px; display: flex; align-items: flex-end; gap: 6px; border-bottom: 1px solid #f1f5f9; }
+        .status { font-size: 18px; font-weight: 800; margin-0 0 10px 0; }
+        .chart { height: 75px; display: flex; align-items: flex-end; gap: 6px; border-bottom: 1px solid #f1f5f9; }
         .bar { width: 100%; border-radius: 4px 4px 0 0; background: #e2e8f0; }
         .bar-live { background: #4f46e5; transition: height 0.4s; }
         textarea { width: 100%; padding: 12px; border: 1px solid #cbd5e1; border-radius: 12px; font-size: 14px; box-sizing: border-box; resize: none; margin: 8px 0; -webkit-appearance: none; }
         .modal { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(15,23,42,0.75); z-index: 100; display: none; justify-content: center; align-items: center; padding: 16px; box-sizing: border-box; }
-        .m-card { background: #fff; border-radius: 16px; width: 100%; max-w: 380px; padding: 16px; box-sizing: border-box; }
-        .radio-label { display: flex; align-items: center; gap: 10px; padding: 12px; background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 10px; margin: 6px 0; font-size: 14px; }
-        .circle { width: 60px; height: 60px; background: #0d9488; border-radius: 50%; margin: 14px auto; transition: transform 5s ease-in-out; }
-        .circle.grow { transform: scale(1.5); }
+        .m-card { background: #fff; border-radius: 16px; width: 100%; max-w: 380px; padding: 16px; box-sizing: border-box; max-height: 85vh; overflow-y: auto; }
+        .radio-label { display: flex; align-items: center; gap: 8px; padding: 10px; background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; margin: 4px 0; font-size: 13px; }
+        .sld { margin-bottom: 10px; font-size: 13px; font-weight: 600; }
+        .sld input { width: 100%; accent-color: #4f46e5; margin: 6px 0; }
+        .circle { width: 60px; height: 60px; background: #0d9488; border-radius: 50%; margin: 12px auto; transition: transform 5s ease-in-out; }
+        .circle.grow { transform: scale(1.4); }
+        .tip { background: #f0fdf4; border-left: 4px solid #16a34a; padding: 8px; border-radius: 4px; margin-bottom: 8px; font-size: 12px; }
     </style>
 </head>
 <body>
     <div>
-        <header><h1 style="margin:0;font-size:18px;color:#4f46e5;">🫁 Respire IA</h1></header>
+        <header><h1 style="margin:0;font-size:17px;color:#4f46e5;padding-left:12px;">🫁 Respire IA</h1><span class="v-tag">v1.2.0-beta</span></header>
         <main>
-            <div class="card"><h3>Évaluation</h3><button type="button" onclick="toggleM('q',true)" class="btn btn-p">📊 Faire mon Check-in</button></div>
-            <div class="card"><h3>Exercices</h3><button type="button" onclick="toggleM('c',true)" class="btn btn-s">🧘 Cohérence Cardiaque</button></div>
+            <div class="card"><h3>📋 Bilan de Fond</h3><button type="button" onclick="toggleM('q',true)" class="btn btn-p">📊 Lancer le Bilan Complet</button><p id="lbl-c" style="font-size:11px;color:#94a3b8;text-align:center;margin:6px 0 0 0;">Aucun bilan global aujourd'hui</p></div>
+            
+            <div class="card"><h3>⚡ Suivi Flash (F.L.M.)</h3>
+                <form onsubmit="runFlash(event)">
+                    <div class="sld"><label>Fatigue : <span id="v-fat">5</span>/10</label><input type="range" name="fat" min="1" max="10" value="5" oninput="document.getElementById('v-fat').innerText=this.value"></div>
+                    <div class="sld"><label>Lucidité : <span id="v-luc">5</span>/10</label><input type="range" name="luc" min="1" max="10" value="5" oninput="document.getElementById('v-luc').innerText=this.value"></div>
+                    <div class="sld"><label>Moral : <span id="v-mor">5</span>/10</label><input type="range" name="mor" min="1" max="10" value="5" oninput="document.getElementById('v-mor').innerText=this.value"></div>
+                    <button type="submit" class="btn btn-s">📉 Calculer l'Indice Flash</button>
+                </form>
+            </div>
+
+            <div class="card"><h3>🧘 Exercices</h3><button type="button" onclick="toggleM('c',true)" class="btn btn-s">🧘 Cohérence Cardiaque</button></div>
             <div class="card"><p class="status" id="txt-s">Équilibre Initial</p><div class="chart"><div class="bar" style="height:60%;"></div><div class="bar bar-live" id="g-bar" style="height:50%;"></div></div></div>
-            <div class="card"><h3>📝 Journal</h3><textarea id="j-in" rows="3" placeholder="Écrivez ici... (Tapez 'suicide' pour tester la crise)"></textarea><button type="button" onclick="runJ()" class="btn btn-d">Enregistrer l'entrée</button></div>
+            
+            <div class="card"><h3>💡 Tips de Prévention</h3>
+                <div class="tip"><strong>Surcharge :</strong> Appliquez la règle du tri. Choisissez 2 priorités vitales, reportez le reste.</div>
+                <div class="tip" style="background:#f0f9ff;border-left-color:#0284c7;"><strong>Lucidité :</strong> Travaillez par blocs de 45 min suivis de 5 min sans écran.</div>
+                <div class="tip" style="background:#fdf2f8;border-left-color:#db2777;"><strong>Moral :</strong> Notez 3 micro-victoires le soir pour casser les ruminations.</div>
+            </div>
+
+            <div class="card"><h3>📝 Journal</h3><textarea id="j-in" rows="2" placeholder="Écrivez ici... (Tapez 'suicide' pour tester)"></textarea><button type="button" onclick="runJ()" class="btn btn-d">Enregistrer l'entrée</button></div>
         </main>
     </div>
 
     <!-- MODALES -->
-    <div id="m-q" class="modal"><div class="m-card"><div style="display:flex;justify-content:space-between;"><b>Évaluation CBI</b><button onclick="toggleM('q',false)" style="background:none;border:none;font-size:20px;">&times;</button></div><form onsubmit="runQ(event)"><p style="font-size:13px;margin:10px 0 0 0;">Le travail épuise-t-il votre énergie ?</p><div class="radio-group"><label class="radio-label"><input type="radio" name="r1" value="100" required> Énormément</label><label class="radio-label"><input type="radio" name="r1" value="50"> Moyennement</label><label class="radio-label"><input type="radio" name="r1" value="0"> Pas du tout</label></div><button type="submit" class="btn btn-p">Valider</button></form></div></div>
-    <div id="m-c" class="modal"><div class="m-card"><div style="display:flex;justify-content:space-between;"><b>Cohérence Cardiaque</b><button onclick="toggleM('c',false)" style="background:none;border:none;font-size:20px;">&times;</button></div><div style="text-align:center;margin:10px 0;"><div id="c-node" class="circle"></div><p id="c-txt" style="font-size:14px;font-weight:700;">Prêt...</p></div><button type="button" id="c-btn" onclick="runR()" class="btn btn-p">Démarrer</button></div></div>
-    <div id="m-cr" class="modal"><div class="m-card" style="border:3px solid #dc2626;text-align:center;"><h2>⚠️ AIDE DISPONIBLE</h2><p style="font-size:13px;">Votre sécurité est notre unique priorité. Appelez gratuitement le numéro national secret :</p><a href="tel:3114" style="font-size:32px;font-weight:900;color:#dc2626;text-decoration:none;display:block;margin:10px 0;">3114</a><div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;"><a href="tel:15" class="btn btn-d" style="text-decoration:none;line-height:44px;">🚑 15</a><a href="tel:112" class="btn btn-d" style="text-decoration:none;line-height:44px;">🇪🇺 112</a></div></div></div>
+    <div id="m-q" class="modal"><div class="m-card"><div style="display:flex;justify-content:space-between;"><b>Bilan Clinique</b><button onclick="toggleM('q',false)" style="background:none;border:none;font-size:22px;">&times;</button></div>
+        <form onsubmit="runQ(event)">
+            <p style="font-size:12px;margin:8px 0 4px 0;">1. Êtes-vous épuisé(e) en fin de journée ?</p>
+            <label class="radio-label"><input type="radio" name="r1" value="100" required> Souvent</label><label class="radio-label"><input type="radio" name="r1" value="0"> Jamais</label>
+            <p style="font-size:12px;margin:8px 0 4px 0;">2. Votre poste use-t-il votre énergie vitale ?</p>
+            <label class="radio-label"><input type="radio" name="r2" value="100" required> Oui</label><label class="radio-label"><input type="radio" name="r2" value="0"> Non</label>
+            <p style="font-size:12px;margin:8px 0 4px 0;">3. Êtes-vous saturé(e) par votre charge mentale ?</p>
+            <label class="radio-label"><input type="radio" name="r3" value="100" required> Oui</label><label class="radio-label"><input type="radio" name="r3" value="0"> Non</label>
+            <button type="submit" class="btn btn-p" style="margin-top:10px;">Soumettre</button>
+        </form>
+    </div></div>
+
+    <div id="m-c" class="modal"><div class="m-card"><div style="display:flex;justify-content:space-between;"><b>Cohérence Cardiaque</b><button onclick="toggleM('c',false)" style="background:none;border:none;font-size:20px;">&times;</button></div><div style="text-align:center;margin:10px 0;"><div id="c-node" class="circle"></div><p id="c-txt" style="font-size:13px;font-weight:700;">Prêt...</p></div><button type="button" id="c-btn" onclick="runR()" class="btn btn-p">Démarrer</button></div></div>
+    <div id="m-cr" class="modal"><div class="m-card" style="border:3px solid #dc2626;text-align:center;"><h2>⚠️ URGENCE</h2><p style="font-size:12px;">Appelez gratuitement le numéro national confidentiel :</p><a href="tel:3114" style="font-size:32px;font-weight:900;color:#dc2626;text-decoration:none;display:block;margin:10px 0;">3114</a><div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;"><a href="tel:15" class="btn btn-d" style="text-decoration:none;line-height:44px;">🚑 15</a><a href="tel:112" class="btn btn-d" style="text-decoration:none;line-height:44px;">🇪🇺 112</a></div></div></div>
 
     <script>
         function toggleM(t,o){document.getElementById('m-'+t).style.display=o?'flex':'none';if(!o && t==='c')stopR();}
-        function runQ(e){e.preventDefault();let v=parseInt(new FormData(e.target).get('r1'));toggleM('q',false);let b=document.getElementById('g-bar'),l=document.getElementById('txt-s');b.style.height=(100-v)+'%';if(v>=100){l.innerText="Surcharge Critique";l.style.color="#dc2626";b.style.backgroundColor="#dc2626";}else if(v>=50){l.innerText="Vigilance Modérée";l.style.color="#d97706";b.style.backgroundColor="#d97706";}else{l.innerText="Équilibre Stable";l.style.color="#059669";b.style.backgroundColor="#059669";}}
+        function runQ(e){e.preventDefault();let d=new FormData(e.target);let s=(parseInt(d.get('r1'))+parseInt(d.get('r2'))+parseInt(d.get('r3')))/3;toggleM('q',false);document.getElementById('lbl-c').innerText="Évaluation enregistrée";upD(s,"Bilan Global");}
+        function runFlash(e){e.preventDefault();let d=new FormData(e.target);let f=parseInt(d.get('fat')),l=parseInt(d.get('luc')),m=parseInt(d.get('mor'));let s=((f*10)+(100-(l*10))+(100-(m*10)))/3;upD(s,"Indice Flash");}
+        function upD(s,p){let b=document.getElementById('g-bar'),t=document.getElementById('txt-s');b.style.height=(100-s)+'%';if(s>=66){t.innerText=p+" : Critique";t.style.color="#dc2626";b.style.backgroundColor="#dc2626";}else if(s>=33){t.innerText=p+" : Vigilance";t.style.color="#d97706";b.style.backgroundColor="#d97706";}else{t.innerText=p+" : Stable";t.style.color="#059669";b.style.backgroundColor="#059669";}}
         let cI=null,rAct=false;
         function runR(){if(rAct){stopR();return;}rAct=true;document.getElementById('c-btn').innerText="Arrêter";document.getElementById('c-btn').style.backgroundColor="#dc2626";let nd=document.getElementById('c-node'),tx=document.getElementById('c-txt');function cycle(){tx.innerText="🌸 Inspirez (5s)...";nd.classList.add('grow');setTimeout(()=>{if(!rAct)return;tx.innerText="💨 Expirez (5s)...";nd.classList.remove('grow');},5000);}cycle();cI=setInterval(cycle,10000);}
         function stopR(){rAct=false;clearInterval(cI);document.getElementById('c-node').classList.remove('grow');document.getElementById('c-txt').innerText="Session arrêtée";document.getElementById('c-btn').innerText="Démarrer";document.getElementById('c-btn').style.backgroundColor="#4f46e5";}
-        function runJ(){let txt=document.getElementById('j-in').value.toLowerCase();if(['suicide','en finir','me tuer','mourir','crever'].some(m=>txt.includes(m))){document.getElementById('m-cr').style.display='flex';}else if(txt.trim()===""){alert("Veuillez écrire votre texte.");}else{alert("Entrée sauvegardée.");document.getElementById('j-in').value="";document.getElementById('g-bar').style.height="85%";document.getElementById('g-bar').style.backgroundColor="#059669";document.getElementById('txt-s').innerText="Récupération Active";document.getElementById('txt-s').style.color="#059669";}}
-    </script>
-</body>
-</html>
+        function runJ(){let txt=document.getElementById('j-in').value.toLowerCase();if(['suicide','en finir','me tuer','mourir','crever'].some(m=>txt.includes(m))){document.getElementById('m-cr').style.display='flex';}else if(txt.trim()===""){alert("Journal vide.");}else{alert("Enregistré.");document.getElementById('j-in').value="";document.getElementById('g-bar').style.height="85hashes";document.getElementById('g-bar').style.backgroundColor="#059669";document.getElementById('txt-s').innerText="Journal : Actif";document.getElementById('txt-s').style.color="#059669";}}
