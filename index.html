@@ -18,7 +18,7 @@
         .bar { width: 100%; border-radius: 4px 4px 0 0; background: #e2e8f0; }
         .bar-live { background: #4f46e5; transition: height 0.4s; }
         textarea { width: 100%; padding: 12px; border: 1px solid #cbd5e1; border-radius: 12px; font-size: 14px; box-sizing: border-box; resize: none; margin: 8px 0; -webkit-appearance: none; }
-        
+
         /* Sections dépliantes intégrées (Zéro Pop-up) */
         .inline-section { background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 10px; padding: 12px; margin-top: 10px; display: none; }
         .radio-label { display: flex; align-items: center; gap: 8px; padding: 10px; background: #fff; border: 1px solid #e2e8f0; border-radius: 8px; margin: 4px 0; font-size: 13px; }
@@ -27,18 +27,23 @@
         .circle { width: 60px; height: 60px; background: #0d9488; border-radius: 50%; margin: 12px auto; transition: transform 5s ease-in-out; }
         .circle.grow { transform: scale(1.4); }
         .tip { background: #f0fdf4; border-left: 4px solid #16a34a; padding: 8px; border-radius: 4px; margin-bottom: 8px; font-size: 12px; }
+
+        /* Toast interne (remplace alert(), souvent bloqué dans les webviews/aperçus embarqués) */
+        #toast-wrap { position: fixed; left: 12px; right: 12px; bottom: 12px; z-index: 999; display: flex; flex-direction: column; gap: 8px; pointer-events: none; }
+        .toast { background: #0f172a; color: #fff; padding: 12px 14px; border-radius: 10px; font-size: 13px; font-weight: 600; box-shadow: 0 6px 18px rgba(0,0,0,0.18); opacity: 0; transform: translateY(8px); transition: opacity 0.25s ease, transform 0.25s ease; }
+        .toast.show { opacity: 1; transform: translateY(0); }
     </style>
 </head>
 <body>
     <div>
-        <header><h1 style="margin:0;font-size:17px;color:#4f46e5;padding-left:12px;">🫁 Respire IA</h1><span class="v-tag">v1.2.6-beta</span></header>
+        <header><h1 style="margin:0;font-size:17px;color:#4f46e5;padding-left:12px;">🫁 Respire IA</h1><span class="v-tag">v1.2.7</span></header>
         <main>
             <!-- Module Bilan de Fond Intégré -->
             <div class="card">
                 <h3>📋 Bilan de Fond</h3>
                 <button type="button" id="go-q" class="btn btn-p">📊 Déplier le Bilan Complet</button>
                 <p id="lbl-c" style="font-size:11px;color:#94a3b8;text-align:center;margin:6px 0 0 0;">Aucun bilan global aujourd'hui</p>
-                
+
                 <div id="box-q" class="inline-section">
                     <p style="font-size:12px;margin:4px 0;">1. Êtes-vous épuisé(e) en fin de journée ?</p>
                     <label class="radio-label"><input type="radio" name="r1" value="100"> Souvent</label>
@@ -49,7 +54,7 @@
                     <button type="button" id="sub-q" class="btn btn-p" style="margin-top:10px;">Soumettre le bilan</button>
                 </div>
             </div>
-            
+
             <!-- Module Curseurs Quotidien -->
             <div class="card">
                 <h3>⚡ Suivi Flash (F.L.M.)</h3>
@@ -65,17 +70,17 @@
             <div class="card">
                 <h3>🧘 Exercices</h3>
                 <button type="button" id="go-c" class="btn btn-s">🧘 Déplier la Cohérence Cardiaque</button>
-                
+
                 <div id="box-c" class="inline-section" style="text-align:center;">
                     <div id="c-node" class="circle"></div>
                     <p id="c-txt" style="font-size:13px;font-weight:700;margin:6px 0;">Prêt...</p>
                     <button type="button" id="c-btn" class="btn btn-p">Démarrer la respiration</button>
                 </div>
             </div>
-            
+
             <!-- Tableau de bord -->
             <div class="card"><p class="status" id="txt-s">Équilibre Initial</p><div class="chart"><div class="bar" style="height:60%;"></div><div class="bar bar-live" id="g-bar" style="height:50%;"></div></div></div>
-            
+
             <!-- Cellule d'Urgence Intégrée (Toujours présente mais cachée, s'ouvre dans le flux) -->
             <div id="box-cr" class="card" style="border:3px solid #dc2626; text-align:center; display:none;">
                 <h2 style="color:#dc2626;font-size:18px;margin:0 0 6px 0;">⚠️ URGENCE</h2>
@@ -91,47 +96,148 @@
             </div>
 
             <!-- Journal -->
-            <div class="card"><h3>📝 Journal</h3><textarea id="j-in" rows="2" placeholder="Écrivez ici... (Tapez 'suicide' pour tester)"></textarea><button type="button" id="go-j" class="btn btn-d">Enregistrer l'entrée</button></div>
+            <div class="card"><h3>📝 Journal</h3><textarea id="j-in" rows="2" placeholder="Écrivez ici..."></textarea><button type="button" id="go-j" class="btn btn-d">Enregistrer l'entrée</button></div>
         </main>
     </div>
 
     <footer>Respire IA — Version de secours robuste.</footer>
 
+    <div id="toast-wrap"></div>
+
     <script>
-        window.onload = function() {
-            /* --- Actualisation des Curseurs --- */
-            document.getElementById('f-sl').oninput = function() { document.getElementById('v-fat').innerText = this.value; };
-            document.getElementById('l-sl').oninput = function() { document.getElementById('v-luc').innerText = this.value; };
-            document.getElementById('m-sl').oninput = function() { document.getElementById('v-mor').innerText = this.value; };
+    document.addEventListener('DOMContentLoaded', function () {
 
-            /* --- Gestion de l'affichage en accordéon (In-App) --- */
-            document.getElementById('go-q').onclick = function() {
-                let box = document.getElementById('box-q');
-                if(box.style.display === 'block') { box.style.display = 'none'; this.innerText = "📊 Déplier le Bilan Complet"; }
-                else { box.style.display = 'block'; this.innerText = "🔼 Replier le questionnaire"; }
-            };
-            
-            document.getElementById('go-c').onclick = function() {
-                let box = document.getElementById('box-c');
-                if(box.style.display === 'block') { box.style.display = 'none'; this.innerText = "🧘 Déplier la Cohérence Cardiaque"; stopR(); }
-                else { box.style.display = 'block'; this.innerText = "🔼 Replier l'exercice"; }
-            };
+        /* --- Toast interne : remplace window.alert(), souvent bloqué en webview/iframe sandbox --- */
+        function toast(msg) {
+            var wrap = document.getElementById('toast-wrap');
+            var el = document.createElement('div');
+            el.className = 'toast';
+            el.textContent = msg;
+            wrap.appendChild(el);
+            requestAnimationFrame(function () { el.classList.add('show'); });
+            setTimeout(function () {
+                el.classList.remove('show');
+                setTimeout(function () { el.remove(); }, 250);
+            }, 2500);
+        }
 
-            /* --- Soumission du Bilan de Fond --- */
-            document.getElementById('sub-q').onclick = function() {
-                let r1 = parseInt(document.querySelector('input[name="r1"]:checked').value);
-                let r2 = parseInt(document.querySelector('input[name="r2"]:checked').value);
-                let score = (r1 + r2) / 2;
-                document.getElementById('box-q').style.display = 'none';
-                document.getElementById('go-q').innerText = "📊 Déplier le Bilan Complet";
-                document.getElementById('lbl-c').innerText = "Évaluation enregistrée";
-                upD(score, "Bilan Global");
-                alert("Votre bilan a été pris en compte.");
-            };
+        /* --- Actualisation des curseurs --- */
+        document.getElementById('f-sl').oninput = function () { document.getElementById('v-fat').innerText = this.value; };
+        document.getElementById('l-sl').oninput = function () { document.getElementById('v-luc').innerText = this.value; };
+        document.getElementById('m-sl').oninput = function () { document.getElementById('v-mor').innerText = this.value; };
 
-            /* --- Soumission du Suivi Flash F.L.M --- */
-            document.getElementById('go-f').onclick = function() {
-                let f = parseInt(document.getElementById('f-sl').value);
-                let l = parseInt(document.getElementById('l-sl').value);
-                let m = parseInt(document.getElementById('m-sl').value);
-                let score = ((f * 10) + (100 - (l * 10)) + (100 - (m * 10))) / 3;document.getElementById('f-sl').value = 5; document.getElementById('v-fat').innerText = 5;document.getElementById('l-sl').value = 5; document.getElementById('v-luc').innerText = 5;document.getElementById('m-sl').value = 5; document.getElementById('v-mor').innerText = 5;upD(score, "Indice Flash");alert("Votre indice flash quotidien a été mis à jour.");};/* --- Soumission du Journal & Intercepteur --- */document.getElementById('go-j').onclick = function() {let txt = document.getElementById('j-in').value.toLowerCase();if (['suicide', 'en finir', 'me tuer', 'mourir', 'crever'].some(m => txt.includes(m))) {document.getElementById('box-cr').style.display = 'block';document.getElementById('box-cr').scrollIntoView({ behavior: 'smooth' });} else if (txt.trim() === "") {alert("Votre journal est vide.");} else {alert("Entrée sauvegardée.");document.getElementById('j-in').value = "";document.getElementById('g-bar').style.height = "85%";document.getElementById('g-bar').style.backgroundColor = "#059669";document.getElementById('txt-s').innerText = "Journal : Actif";document.getElementById('txt-s').style.color = "#059669";}};/* --- Module Cohérence Cardiaque --- */let cI = null, rAct = false;document.getElementById('c-btn').onclick = function() {if (rAct) { stopR(); return; }rAct = true; this.innerText = "Arrêter"; this.style.backgroundColor = "#dc2626";let nd = document.getElementById('c-node'), tx = document.getElementById('c-txt');function cycle() {tx.innerText = "🌸 Inspirez (5s)..."; nd.classList.add('grow');setTimeout(() => { if (!rAct) return; tx.innerText = "💨 Expirez (5s)..."; nd.classList.remove('grow'); }, 5000);}cycle(); cI = setInterval(cycle, 10000);};function stopR() {rAct = false; clearInterval(cI);if(document.getElementById('c-node')) document.getElementById('c-node').classList.remove('grow');if(document.getElementById('c-txt')) document.getElementById('c-txt').innerText = "Session arrêtée";let btn = document.getElementById('c-btn');if(btn) { btn.innerText = "Démarrer"; btn.style.backgroundColor = "#4f46e5"; }}function upD(s, p) {let b = document.getElementById('g-bar');let t = document.getElementById('txt-s');b.style.height = (100 - s) + '%';if (s >= 66) {t.innerText = p + " : Critique"; t.style.color = "#dc2626"; b.style.backgroundColor = "#dc2626";} else if (s >= 33) {t.innerText = p + " : Vigilance"; t.style.color = "#d97706"; b.style.backgroundColor = "#d97706";} else {t.innerText = p + " : Stable"; t.style.color = "#059669"; b.style.backgroundColor = "#059669";}}};
+        /* --- Accordéons (in-app, pas de popup) --- */
+        document.getElementById('go-q').onclick = function () {
+            var box = document.getElementById('box-q');
+            var open = box.style.display === 'block';
+            box.style.display = open ? 'none' : 'block';
+            this.innerText = open ? '📊 Déplier le Bilan Complet' : '🔼 Replier le questionnaire';
+        };
+
+        document.getElementById('go-c').onclick = function () {
+            var box = document.getElementById('box-c');
+            var open = box.style.display === 'block';
+            box.style.display = open ? 'none' : 'block';
+            this.innerText = open ? '🧘 Déplier la Cohérence Cardiaque' : '🔼 Replier l\'exercice';
+            if (open) stopR();
+        };
+
+        /* --- Soumission du Bilan de Fond --- */
+        document.getElementById('sub-q').onclick = function () {
+            var r1c = document.querySelector('input[name="r1"]:checked');
+            var r2c = document.querySelector('input[name="r2"]:checked');
+            if (!r1c || !r2c) { toast('Merci de répondre aux deux questions.'); return; }
+            var score = (parseInt(r1c.value) + parseInt(r2c.value)) / 2;
+            document.getElementById('box-q').style.display = 'none';
+            document.getElementById('go-q').innerText = '📊 Déplier le Bilan Complet';
+            document.getElementById('lbl-c').innerText = 'Évaluation enregistrée';
+            upD(score, 'Bilan Global');
+            toast('Votre bilan a été pris en compte.');
+        };
+
+        /* --- Soumission du Suivi Flash F.L.M --- */
+        document.getElementById('go-f').onclick = function () {
+            var f = parseInt(document.getElementById('f-sl').value);
+            var l = parseInt(document.getElementById('l-sl').value);
+            var m = parseInt(document.getElementById('m-sl').value);
+            var score = ((f * 10) + (100 - (l * 10)) + (100 - (m * 10))) / 3;
+
+            document.getElementById('f-sl').value = 5; document.getElementById('v-fat').innerText = 5;
+            document.getElementById('l-sl').value = 5; document.getElementById('v-luc').innerText = 5;
+            document.getElementById('m-sl').value = 5; document.getElementById('v-mor').innerText = 5;
+
+            upD(score, 'Indice Flash');
+            toast('Votre indice flash quotidien a été mis à jour.');
+        };
+
+        /* --- Soumission du Journal & intercepteur de mots-clés sensibles --- */
+        document.getElementById('go-j').onclick = function () {
+            var txt = document.getElementById('j-in').value.toLowerCase();
+            var flagged = ['suicide', 'en finir', 'me tuer', 'mourir', 'crever'].some(function (w) { return txt.includes(w); });
+
+            if (flagged) {
+                document.getElementById('box-cr').style.display = 'block';
+                document.getElementById('box-cr').scrollIntoView({ behavior: 'smooth' });
+            } else if (txt.trim() === '') {
+                toast('Votre journal est vide.');
+            } else {
+                toast('Entrée sauvegardée.');
+                document.getElementById('j-in').value = '';
+                document.getElementById('g-bar').style.height = '85%';
+                document.getElementById('g-bar').style.backgroundColor = '#059669';
+                document.getElementById('txt-s').innerText = 'Journal : Actif';
+                document.getElementById('txt-s').style.color = '#059669';
+            }
+        };
+
+        /* --- Module Cohérence Cardiaque --- */
+        var cI = null, rAct = false;
+
+        document.getElementById('c-btn').onclick = function () {
+            if (rAct) { stopR(); return; }
+            rAct = true;
+            this.innerText = 'Arrêter';
+            this.style.backgroundColor = '#dc2626';
+
+            var nd = document.getElementById('c-node'), tx = document.getElementById('c-txt');
+            function cycle() {
+                tx.innerText = '🌸 Inspirez (5s)...';
+                nd.classList.add('grow');
+                setTimeout(function () {
+                    if (!rAct) return;
+                    tx.innerText = '💨 Expirez (5s)...';
+                    nd.classList.remove('grow');
+                }, 5000);
+            }
+            cycle();
+            cI = setInterval(cycle, 10000);
+        };
+
+        function stopR() {
+            rAct = false;
+            clearInterval(cI);
+            var nd = document.getElementById('c-node');
+            var tx = document.getElementById('c-txt');
+            var btn = document.getElementById('c-btn');
+            if (nd) nd.classList.remove('grow');
+            if (tx) tx.innerText = 'Session arrêtée';
+            if (btn) { btn.innerText = 'Démarrer'; btn.style.backgroundColor = '#4f46e5'; }
+        }
+
+        /* --- Mise à jour du tableau de bord --- */
+        function upD(s, p) {
+            var b = document.getElementById('g-bar');
+            var t = document.getElementById('txt-s');
+            b.style.height = (100 - s) + '%';
+            if (s >= 66) {
+                t.innerText = p + ' : Critique'; t.style.color = '#dc2626'; b.style.backgroundColor = '#dc2626';
+            } else if (s >= 33) {
+                t.innerText = p + ' : Vigilance'; t.style.color = '#d97706'; b.style.backgroundColor = '#d97706';
+            } else {
+                t.innerText = p + ' : Stable'; t.style.color = '#059669'; b.style.backgroundColor = '#059669';
+            }
+        }
+    });
+    </script>
+</body>
+</html>
