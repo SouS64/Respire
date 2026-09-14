@@ -5,11 +5,12 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Respire IA</title>
     <style>
-        body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; background: #f8fafc; color: #1e293b; margin: 0; padding: 12px; min-height: 100vh; display: flex; flex-direction: column; justify-content: space-between; -webkit-tap-highlight-color: transparent; }
+        /* Patch iOS : Forcer la reconnaissance des clics sur mobile */
+        body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; background: #f8fafc; color: #1e293b; margin: 0; padding: 12px; min-height: 100vh; display: flex; flex-direction: column; justify-content: space-between; -webkit-tap-highlight-color: transparent; cursor: pointer; }
         header { background: #fff; padding: 12px; border-bottom: 1px solid #e2e8f0; margin: -12px -12px 12px -12px; display: flex; justify-content: space-between; align-items: center; }
         .v-tag { font-size: 10px; background: #e2e8f0; color: #475569; padding: 2px 6px; border-radius: 4px; font-weight: 700; margin-right: 12px; }
         .card { background: #fff; border: 1px solid #e2e8f0; border-radius: 14px; padding: 14px; margin-bottom: 12px; }
-        .btn { width: 100%; min-height: 44px; border: none; border-radius: 12px; font-weight: 600; font-size: 14px; cursor: pointer; margin-top: 8px; -webkit-appearance: none; display: flex; justify-content: center; align-items: center; }
+        .btn { width: 100%; min-height: 46px; border: none; border-radius: 12px; font-weight: 600; font-size: 14px; cursor: pointer; margin-top: 8px; -webkit-appearance: none; display: flex; justify-content: center; align-items: center; }
         .btn-p { background: #4f46e5; color: #fff; }
         .btn-s { background: #fff; color: #334155; border: 1px solid #cbd5e1; }
         .btn-d { background: #0f172a; color: #fff; }
@@ -26,11 +27,14 @@
         .circle { width: 60px; height: 60px; background: #0d9488; border-radius: 50%; margin: 12px auto; transition: transform 5s ease-in-out; }
         .circle.grow { transform: scale(1.4); }
         .tip { background: #f0fdf4; border-left: 4px solid #16a34a; padding: 8px; border-radius: 4px; margin-bottom: 8px; font-size: 12px; }
+        .toast-notification { padding: 10px; border-radius: 10px; font-size: 12px; font-weight: 600; text-align: center; margin-top: 6px; display: none; }
+        .toast-success { background: #f0fdf4; border: 1px solid #bbf7d0; color: #166534; }
+        .toast-error { background: #fef2f2; border: 1px solid #fecaca; color: #991b1b; }
     </style>
 </head>
 <body>
     <div>
-        <header><h1 style="margin:0;font-size:17px;color:#4f46e5;padding-left:12px;">🫁 Respire IA</h1><span class="v-tag" id="version-tag">v1.2.2-beta</span></header>
+        <header><h1 style="margin:0;font-size:17px;color:#4f46e5;padding-left:12px;">🫁 Respire IA</h1><span class="v-tag" id="version-tag">v1.2.3-beta</span></header>
         <main>
             <div class="card"><h3>📋 Bilan de Fond</h3><button type="button" id="btn-open-q" class="btn btn-p">📊 Lancer le Bilan Complet</button><p id="lbl-c" style="font-size:11px;color:#94a3b8;text-align:center;margin:6px 0 0 0;">Aucun bilan global aujourd'hui</p></div>
             
@@ -52,7 +56,7 @@
                 <div class="tip" style="background:#fdf2f8;border-left-color:#db2777;"><strong>Moral :</strong> Notez 3 micro-victoires le soir pour casser les ruminations.</div>
             </div>
 
-            <div class="card"><h3>📝 Journal</h3><textarea id="j-in" rows="2" placeholder="Écrivez ici... (Tapez 'suicide' pour tester)"></textarea><button type="button" id="btn-submit-journal" class="btn btn-d">Enregistrer l'entrée</button></div>
+            <div class="card"><h3>📝 Journal</h3><textarea id="j-in" rows="2" placeholder="Écrivez ici... (Tapez 'suicide' pour tester)"></textarea><button type="button" id="btn-submit-journal" class="btn btn-d">Enregistrer l'entrée</button><div id="j-toast" class="toast-notification"></div></div>
         </main>
     </div>
 
@@ -74,28 +78,19 @@
 
     <script>
         document.addEventListener("DOMContentLoaded", function () {
-            /* --- Liaisons Boutons Principaux & Modales --- */
-            document.getElementById('btn-open-q').addEventListener('click', function() { document.getElementById('m-q').style.display = 'flex'; });
-            document.getElementById('btn-close-q').addEventListener('click', function() { document.getElementById('m-q').style.display = 'none'; });
-            document.getElementById('btn-open-c').addEventListener('click', function() { document.getElementById('m-c').style.display = 'flex'; });
-            document.getElementById('btn-close-c').addEventListener('click', function() { document.getElementById('m-c').style.display = 'none'; stopR(); });
+            /* --- Liaisons Événements et Fenêtres (Correction tactile iOS) --- */
+            document.getElementById('btn-open-q').addEventListener('click', function(e) { e.preventDefault(); document.getElementById('m-q').style.display = 'flex'; });
+            document.getElementById('btn-close-q').addEventListener('click', function(e) { e.preventDefault(); document.getElementById('m-q').style.display = 'none'; });
+            document.getElementById('btn-open-c').addEventListener('click', function(e) { e.preventDefault(); document.getElementById('m-c').style.display = 'flex'; });
+            document.getElementById('btn-close-c').addEventListener('click', function(e) { e.preventDefault(); document.getElementById('m-c').style.display = 'none'; stopR(); });
 
-            /* --- Curseurs Flash Interactifs --- */
+            /* --- Curseurs Flash --- */
             document.getElementById('input-fat').addEventListener('input', function() { document.getElementById('v-fat').innerText = this.value; });
             document.getElementById('input-luc').addEventListener('input', function() { document.getElementById('v-luc').innerText = this.value; });
             document.getElementById('input-mor').addEventListener('input', function() { document.getElementById('v-mor').innerText = this.value; });
 
-            /* --- Logique Métriques et Calculs --- */
-            document.getElementById('btn-submit-q').addEventListener('click', function() {
+            /* --- Soumission Bilan (Remplacement des alertes système par Toasts) --- */
+            document.getElementById('btn-submit-q').addEventListener('click', function(e) {
+                e.preventDefault();
                 let r1 = parseInt(document.querySelector('input[name="r1"]:checked').value);
-                let r2 = parseInt(document.querySelector('input[name="r2"]:checked').value);
-                let r3 = parseInt(document.querySelector('input[name="r3"]:checked').value);
-                let score = (r1 + r2 + r3) / 3;
-                document.getElementById('m-q').style.display = 'none';
-                document.getElementById('lbl-c').innerText = "Évaluation enregistrée";
-                upD(score, "Bilan Global");
-            });
-
-            document.getElementById('btn-submit-flash').addEventListener('click', function() {
-                let f = parseInt(document.getElementById('input-fat').value);
-                let l = parseInt(document.getElementById('input-luc').value);let m = parseInt(document.getElementById('input-mor').value);let score = ((f * 10) + (100 - (l * 10)) + (100 - (m * 10))) / 3;upD(score, "Indice Flash");});document.getElementById('btn-submit-journal').addEventListener('click', function() {let txt = document.getElementById('j-in').value.toLowerCase();if (['suicide', 'en finir', 'me tuer', 'mourir', 'crever'].some(m => txt.includes(m))) {document.getElementById('m-cr').style.display = 'flex';} else if (txt.trim() === "") {alert("Journal vide.");} else {alert("Enregistré.");document.getElementById('j-in').value = "";document.getElementById('g-bar').style.height = "85%";document.getElementById('g-bar').style.backgroundColor = "#059669";document.getElementById('txt-s').innerText = "Journal : Actif";document.getElementById('txt-s').style.color = "#059669";}});/* --- Module Cohérence Cardiaque --- */let cI = null, rAct = false;document.getElementById('c-btn').addEventListener('click', function() {if (rAct) { stopR(); return; }rAct = true;this.innerText = "Arrêter";this.style.backgroundColor = "#dc2626";let nd = document.getElementById('c-node'), tx = document.getElementById('c-txt');function cycle() {tx.innerText = "🌸 Inspirez (5s)..."; nd.classList.add('grow');setTimeout(() => { if (!rAct) return; tx.innerText = "💨 Expirez (5s)..."; nd.classList.remove('grow'); }, 5000);}cycle(); cI = setInterval(cycle, 10000);});function stopR() {rAct = false; clearInterval(cI);document.getElementById('c-node').classList.remove('grow');document.getElementById('c-txt').innerText = "Session arrêtée";let btn = document.getElementById('c-btn');btn.innerText = "Démarrer"; btn.style.backgroundColor = "#4f46e5";}function upD(s, p) {let b = document.getElementById('g-bar');let t = document.getElementById('txt-s');b.style.height = (100 - s) + '%';if (s >= 66) {t.innerText = p + " : Critique"; t.style.color = "#dc2626"; b.style.backgroundColor = "#dc2626";} else if (s >= 33) {t.innerText = p + " : Vigilance"; t.style.color = "#d97706"; b.style.backgroundColor = "#d97706";} else {t.innerText = p + " : Stable"; t.style.color = "#059669"; b.style.backgroundColor = "#059669";}}});
+                let r2 = parseInt(document.querySelector('input[name="r2"]:checked').value);let r3 = parseInt(document.querySelector('input[name="r3"]:checked').value);let score = (r1 + r2 + r3) / 3;document.getElementById('m-q').style.display = 'none';document.getElementById('lbl-c').innerText = "Évaluation enregistrée";upD(score, "Bilan Global");displayToast("Bilan global mis à jour avec succès.", "success");});document.getElementById('btn-submit-flash').addEventListener('click', function(e) {e.preventDefault();let f = parseInt(document.getElementById('input-fat').value);let l = parseInt(document.getElementById('input-luc').value);let m = parseInt(document.getElementById('input-mor').value);let score = ((f * 10) + (100 - (l * 10)) + (100 - (m * 10))) / 3;upD(score, "Indice Flash");displayToast("Indice Flash calculé.", "success");});document.getElementById('btn-submit-journal').addEventListener('click', function(e) {e.preventDefault();let txt = document.getElementById('j-in').value.toLowerCase();if (['suicide', 'en finir', 'me tuer', 'mourir', 'crever'].some(m => txt.includes(m))) {document.getElementById('m-cr').style.display = 'flex';} else if (txt.trim() === "") {displayToast("Le champ journal est vide.", "error");} else {document.getElementById('j-in').value = "";document.getElementById('g-bar').style.height = "85%";document.getElementById('g-bar').style.backgroundColor = "#059669";document.getElementById('txt-s').innerText = "Journal : Actif";document.getElementById('txt-s').style.color = "#059669";displayToast("Entrée sauvegardée graphiquement.", "success");}});/* --- Module Cohérence Cardiaque --- */let cI = null, rAct = false;document.getElementById('c-btn').addEventListener('click', function(e) {e.preventDefault();if (rAct) { stopR(); return; }rAct = true;this.innerText = "Arrêter";this.style.backgroundColor = "#dc2626";let nd = document.getElementById('c-node'), tx = document.getElementById('c-txt');function cycle() {tx.innerText = "🌸 Inspirez (5s)..."; nd.classList.add('grow');setTimeout(() => { if (!rAct) return; tx.innerText = "💨 Expirez (5s)..."; nd.classList.remove('grow'); }, 5000);}cycle(); cI = setInterval(cycle, 10000);});function stopR() {rAct = false; clearInterval(cI);document.getElementById('c-node').classList.remove('grow');document.getElementById('c-txt').innerText = "Session arrêtée";let btn = document.getElementById('c-btn');btn.innerText = "Démarrer"; btn.style.backgroundColor = "#4f46e5";}function upD(s, p) {let b = document.getElementById('g-bar');let t = document.getElementById('txt-s');b.style.height = (100 - s) + '%';if (s >= 66) {t.innerText = p + " : Critique"; t.style.color = "#dc2626"; b.style.backgroundColor = "#dc2626";} else if (s >= 33) {t.innerText = p + " : Vigilance"; t.style.color = "#d97706"; b.style.backgroundColor = "#d97706";} else {t.innerText = p + " : Stable"; t.style.color = "#059669"; b.style.backgroundColor = "#059669";}}function displayToast(msg, type) {let t = document.getElementById('j-toast');t.innerText = msg; t.style.display = "block";t.className = "toast-notification toast-" + type;setTimeout(() => { t.style.display = "none"; }, 3000);}});
