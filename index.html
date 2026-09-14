@@ -198,18 +198,32 @@
             { id: 'm3', domain: 'sens', level: 'modere', text: 'Repérer ce qui, cette semaine, a eu du sens — et lui faire plus de place.' }
         ];
  
-        /* ============ ÉTAT + PERSISTANCE (window.storage) ============ */
+        /* ============ ÉTAT + PERSISTANCE ============ */
+        /* window.storage n'existe que dans l'aperçu d'artifact de Claude.ai.
+           Sur un déploiement autonome (GitHub Pages, serveur perso, etc.),
+           on bascule automatiquement sur localStorage du navigateur. */
         var state = { diagnostics: [], daily: [], actions: {} };
+        var hasCloudStorage = (typeof window.storage !== 'undefined') && window.storage && typeof window.storage.get === 'function';
  
         async function safeGet(key, fallback) {
             try {
-                var r = await window.storage.get(key, false);
-                return r && r.value ? JSON.parse(r.value) : fallback;
+                if (hasCloudStorage) {
+                    var r = await window.storage.get(key, false);
+                    return r && r.value ? JSON.parse(r.value) : fallback;
+                } else {
+                    var raw = localStorage.getItem(key);
+                    return raw ? JSON.parse(raw) : fallback;
+                }
             } catch (e) { return fallback; }
         }
         async function safeSet(key, value) {
-            try { await window.storage.set(key, JSON.stringify(value), false); }
-            catch (e) { toast('Sauvegarde impossible pour le moment.'); }
+            try {
+                if (hasCloudStorage) {
+                    await window.storage.set(key, JSON.stringify(value), false);
+                } else {
+                    localStorage.setItem(key, JSON.stringify(value));
+                }
+            } catch (e) { toast('Sauvegarde impossible sur cet appareil (stockage bloqué ou plein).'); }
         }
  
         async function loadState() {
